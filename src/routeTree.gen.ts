@@ -22,6 +22,7 @@ import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AppWorkspaceRouteImport } from './routes/app.workspace'
 import { Route as AppThoughtsRouteImport } from './routes/app.thoughts'
 import { Route as AppPlannerRouteImport } from './routes/app.planner'
+import { Route as AppCalendarRouteImport } from './routes/app.calendar'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -88,6 +89,11 @@ const AppPlannerRoute = AppPlannerRouteImport.update({
   path: '/planner',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCalendarRoute = AppCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -97,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/cookies': typeof CookiesRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/app/calendar': typeof AppCalendarRoute
   '/app/planner': typeof AppPlannerRoute
   '/app/thoughts': typeof AppThoughtsRoute
   '/app/workspace': typeof AppWorkspaceRoute
@@ -111,6 +118,7 @@ export interface FileRoutesByTo {
   '/cookies': typeof CookiesRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/app/calendar': typeof AppCalendarRoute
   '/app/planner': typeof AppPlannerRoute
   '/app/thoughts': typeof AppThoughtsRoute
   '/app/workspace': typeof AppWorkspaceRoute
@@ -127,6 +135,7 @@ export interface FileRoutesById {
   '/cookies': typeof CookiesRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/app/calendar': typeof AppCalendarRoute
   '/app/planner': typeof AppPlannerRoute
   '/app/thoughts': typeof AppThoughtsRoute
   '/app/workspace': typeof AppWorkspaceRoute
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/privacy'
     | '/terms'
+    | '/app/calendar'
     | '/app/planner'
     | '/app/thoughts'
     | '/app/workspace'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/privacy'
     | '/terms'
+    | '/app/calendar'
     | '/app/planner'
     | '/app/thoughts'
     | '/app/workspace'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/privacy'
     | '/terms'
+    | '/app/calendar'
     | '/app/planner'
     | '/app/thoughts'
     | '/app/workspace'
@@ -286,10 +298,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPlannerRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/calendar': {
+      id: '/app/calendar'
+      path: '/calendar'
+      fullPath: '/app/calendar'
+      preLoaderRoute: typeof AppCalendarRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppCalendarRoute: typeof AppCalendarRoute
   AppPlannerRoute: typeof AppPlannerRoute
   AppThoughtsRoute: typeof AppThoughtsRoute
   AppWorkspaceRoute: typeof AppWorkspaceRoute
@@ -297,6 +317,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppCalendarRoute: AppCalendarRoute,
   AppPlannerRoute: AppPlannerRoute,
   AppThoughtsRoute: AppThoughtsRoute,
   AppWorkspaceRoute: AppWorkspaceRoute,
