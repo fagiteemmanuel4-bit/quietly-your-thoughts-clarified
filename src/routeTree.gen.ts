@@ -19,7 +19,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AuthSignupRouteImport } from './routes/auth.signup'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
-import { Route as AppHistoryRouteImport } from './routes/app.history'
+import { Route as AppWorkspaceRouteImport } from './routes/app.workspace'
+import { Route as AppThoughtsRouteImport } from './routes/app.thoughts'
+import { Route as AppTeamRouteImport } from './routes/app.team'
+import { Route as AppSpacesRouteImport } from './routes/app.spaces'
+import { Route as AppSettingsRouteImport } from './routes/app.settings'
+import { Route as AppPlannerRouteImport } from './routes/app.planner'
+import { Route as AppCalendarRouteImport } from './routes/app.calendar'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -71,9 +77,39 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppHistoryRoute = AppHistoryRouteImport.update({
-  id: '/history',
-  path: '/history',
+const AppWorkspaceRoute = AppWorkspaceRouteImport.update({
+  id: '/workspace',
+  path: '/workspace',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppThoughtsRoute = AppThoughtsRouteImport.update({
+  id: '/thoughts',
+  path: '/thoughts',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTeamRoute = AppTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSpacesRoute = AppSpacesRouteImport.update({
+  id: '/spaces',
+  path: '/spaces',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPlannerRoute = AppPlannerRouteImport.update({
+  id: '/planner',
+  path: '/planner',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCalendarRoute = AppCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -85,7 +121,13 @@ export interface FileRoutesByFullPath {
   '/cookies': typeof CookiesRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
-  '/app/history': typeof AppHistoryRoute
+  '/app/calendar': typeof AppCalendarRoute
+  '/app/planner': typeof AppPlannerRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/spaces': typeof AppSpacesRoute
+  '/app/team': typeof AppTeamRoute
+  '/app/thoughts': typeof AppThoughtsRoute
+  '/app/workspace': typeof AppWorkspaceRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/app/': typeof AppIndexRoute
@@ -97,7 +139,13 @@ export interface FileRoutesByTo {
   '/cookies': typeof CookiesRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
-  '/app/history': typeof AppHistoryRoute
+  '/app/calendar': typeof AppCalendarRoute
+  '/app/planner': typeof AppPlannerRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/spaces': typeof AppSpacesRoute
+  '/app/team': typeof AppTeamRoute
+  '/app/thoughts': typeof AppThoughtsRoute
+  '/app/workspace': typeof AppWorkspaceRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/app': typeof AppIndexRoute
@@ -111,7 +159,13 @@ export interface FileRoutesById {
   '/cookies': typeof CookiesRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
-  '/app/history': typeof AppHistoryRoute
+  '/app/calendar': typeof AppCalendarRoute
+  '/app/planner': typeof AppPlannerRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/spaces': typeof AppSpacesRoute
+  '/app/team': typeof AppTeamRoute
+  '/app/thoughts': typeof AppThoughtsRoute
+  '/app/workspace': typeof AppWorkspaceRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/app/': typeof AppIndexRoute
@@ -126,7 +180,13 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/privacy'
     | '/terms'
-    | '/app/history'
+    | '/app/calendar'
+    | '/app/planner'
+    | '/app/settings'
+    | '/app/spaces'
+    | '/app/team'
+    | '/app/thoughts'
+    | '/app/workspace'
     | '/auth/login'
     | '/auth/signup'
     | '/app/'
@@ -138,7 +198,13 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/privacy'
     | '/terms'
-    | '/app/history'
+    | '/app/calendar'
+    | '/app/planner'
+    | '/app/settings'
+    | '/app/spaces'
+    | '/app/team'
+    | '/app/thoughts'
+    | '/app/workspace'
     | '/auth/login'
     | '/auth/signup'
     | '/app'
@@ -151,7 +217,13 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/privacy'
     | '/terms'
-    | '/app/history'
+    | '/app/calendar'
+    | '/app/planner'
+    | '/app/settings'
+    | '/app/spaces'
+    | '/app/team'
+    | '/app/thoughts'
+    | '/app/workspace'
     | '/auth/login'
     | '/auth/signup'
     | '/app/'
@@ -241,23 +313,77 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/history': {
-      id: '/app/history'
-      path: '/history'
-      fullPath: '/app/history'
-      preLoaderRoute: typeof AppHistoryRouteImport
+    '/app/workspace': {
+      id: '/app/workspace'
+      path: '/workspace'
+      fullPath: '/app/workspace'
+      preLoaderRoute: typeof AppWorkspaceRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/thoughts': {
+      id: '/app/thoughts'
+      path: '/thoughts'
+      fullPath: '/app/thoughts'
+      preLoaderRoute: typeof AppThoughtsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/team': {
+      id: '/app/team'
+      path: '/team'
+      fullPath: '/app/team'
+      preLoaderRoute: typeof AppTeamRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/spaces': {
+      id: '/app/spaces'
+      path: '/spaces'
+      fullPath: '/app/spaces'
+      preLoaderRoute: typeof AppSpacesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/settings': {
+      id: '/app/settings'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/planner': {
+      id: '/app/planner'
+      path: '/planner'
+      fullPath: '/app/planner'
+      preLoaderRoute: typeof AppPlannerRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/calendar': {
+      id: '/app/calendar'
+      path: '/calendar'
+      fullPath: '/app/calendar'
+      preLoaderRoute: typeof AppCalendarRouteImport
       parentRoute: typeof AppRoute
     }
   }
 }
 
 interface AppRouteChildren {
-  AppHistoryRoute: typeof AppHistoryRoute
+  AppCalendarRoute: typeof AppCalendarRoute
+  AppPlannerRoute: typeof AppPlannerRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppSpacesRoute: typeof AppSpacesRoute
+  AppTeamRoute: typeof AppTeamRoute
+  AppThoughtsRoute: typeof AppThoughtsRoute
+  AppWorkspaceRoute: typeof AppWorkspaceRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppHistoryRoute: AppHistoryRoute,
+  AppCalendarRoute: AppCalendarRoute,
+  AppPlannerRoute: AppPlannerRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppSpacesRoute: AppSpacesRoute,
+  AppTeamRoute: AppTeamRoute,
+  AppThoughtsRoute: AppThoughtsRoute,
+  AppWorkspaceRoute: AppWorkspaceRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
@@ -277,13 +403,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

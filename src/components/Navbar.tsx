@@ -1,74 +1,32 @@
 import { Link } from "@tanstack/react-router";
-import { Brand } from "./Brand";
+import { Brand, BetaPill } from "./Brand";
+import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
-import { Moon, Sun } from "lucide-react";
-
-function ThemeToggle() {
-  const [dark, setDark] = useState(false);
-  useEffect(() => {
-    const stored = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const isDark = stored ? stored === "dark" : prefersDark;
-    document.documentElement.classList.toggle("dark", isDark);
-    setDark(isDark);
-  }, []);
-  const toggle = () => {
-    const next = !dark;
-    setDark(next);
-    document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("theme", next ? "dark" : "light");
-  };
-  return (
-    <button
-      onClick={toggle}
-      aria-label="Toggle theme"
-      className="rounded-full p-2 text-muted-foreground transition hover:bg-accent hover:text-foreground"
-    >
-      {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-    </button>
-  );
-}
 
 export function Navbar() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   return (
-    <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/70 border-b border-border/60">
-      <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 transition hover:opacity-80">
-          <Brand size="md" />
-        </Link>
-        <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-          <Link to="/" hash="features" className="transition hover:text-foreground">
-            Features
-          </Link>
-          <Link to="/" hash="how" className="transition hover:text-foreground">
-            How it works
-          </Link>
-          <Link to="/" hash="pricing" className="transition hover:text-foreground">
-            Pricing
-          </Link>
+    <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 md:px-6">
+        <div className="flex items-center gap-3">
+          <Brand />
+          <BetaPill />
+        </div>
+        <nav className="hidden items-center gap-7 md:flex">
+          <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Home</Link>
+          <a href="/#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</a>
+          <a href="/#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
+          <Link to="/contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Contact</Link>
         </nav>
         <div className="flex items-center gap-2">
           <ThemeToggle />
           {user ? (
-            <>
-              <Link to="/app">
-                <Button size="sm" variant="ghost">Dashboard</Button>
-              </Link>
-              <Button size="sm" variant="outline" onClick={() => logout()}>
-                Sign out
-              </Button>
-            </>
+            <Button asChild size="sm" className="rounded-md"><Link to="/app">Open app</Link></Button>
           ) : (
             <>
-              <Link to="/auth/login">
-                <Button size="sm" variant="ghost">Log in</Button>
-              </Link>
-              <Link to="/auth/signup">
-                <Button size="sm">Get started</Button>
-              </Link>
+              <Button asChild size="sm" variant="ghost"><Link to="/auth/login">Sign in</Link></Button>
+              <Button asChild size="sm" className="rounded-md"><Link to="/auth/signup">Get started</Link></Button>
             </>
           )}
         </div>

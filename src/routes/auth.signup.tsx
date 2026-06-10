@@ -1,10 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { Brand } from "@/components/Brand";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth-context";
+import { sendWelcomeEmail } from "@/lib/email/send.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth/signup")({
@@ -14,6 +16,7 @@ export const Route = createFileRoute("/auth/signup")({
 
 function SignupPage() {
   const { signUpEmail, signInGoogle } = useAuth();
+  const welcome = useServerFn(sendWelcomeEmail);
   const nav = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -26,6 +29,7 @@ function SignupPage() {
     setLoading(true);
     try {
       await signUpEmail(email, password, name);
+      welcome({ data: { email, name } }).catch(() => {/* non-blocking */});
       nav({ to: "/app" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Signup failed");
