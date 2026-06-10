@@ -21,6 +21,7 @@ import { Route as AuthSignupRouteImport } from './routes/auth.signup'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AppWorkspaceRouteImport } from './routes/app.workspace'
 import { Route as AppThoughtsRouteImport } from './routes/app.thoughts'
+import { Route as AppPlannerRouteImport } from './routes/app.planner'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -82,6 +83,11 @@ const AppThoughtsRoute = AppThoughtsRouteImport.update({
   path: '/thoughts',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPlannerRoute = AppPlannerRouteImport.update({
+  id: '/planner',
+  path: '/planner',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -91,6 +97,7 @@ export interface FileRoutesByFullPath {
   '/cookies': typeof CookiesRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/app/planner': typeof AppPlannerRoute
   '/app/thoughts': typeof AppThoughtsRoute
   '/app/workspace': typeof AppWorkspaceRoute
   '/auth/login': typeof AuthLoginRoute
@@ -104,6 +111,7 @@ export interface FileRoutesByTo {
   '/cookies': typeof CookiesRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/app/planner': typeof AppPlannerRoute
   '/app/thoughts': typeof AppThoughtsRoute
   '/app/workspace': typeof AppWorkspaceRoute
   '/auth/login': typeof AuthLoginRoute
@@ -119,6 +127,7 @@ export interface FileRoutesById {
   '/cookies': typeof CookiesRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/app/planner': typeof AppPlannerRoute
   '/app/thoughts': typeof AppThoughtsRoute
   '/app/workspace': typeof AppWorkspaceRoute
   '/auth/login': typeof AuthLoginRoute
@@ -135,6 +144,7 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/privacy'
     | '/terms'
+    | '/app/planner'
     | '/app/thoughts'
     | '/app/workspace'
     | '/auth/login'
@@ -148,6 +158,7 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/privacy'
     | '/terms'
+    | '/app/planner'
     | '/app/thoughts'
     | '/app/workspace'
     | '/auth/login'
@@ -162,6 +173,7 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/privacy'
     | '/terms'
+    | '/app/planner'
     | '/app/thoughts'
     | '/app/workspace'
     | '/auth/login'
@@ -267,16 +279,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppThoughtsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/planner': {
+      id: '/app/planner'
+      path: '/planner'
+      fullPath: '/app/planner'
+      preLoaderRoute: typeof AppPlannerRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppPlannerRoute: typeof AppPlannerRoute
   AppThoughtsRoute: typeof AppThoughtsRoute
   AppWorkspaceRoute: typeof AppWorkspaceRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppPlannerRoute: AppPlannerRoute,
   AppThoughtsRoute: AppThoughtsRoute,
   AppWorkspaceRoute: AppWorkspaceRoute,
   AppIndexRoute: AppIndexRoute,
