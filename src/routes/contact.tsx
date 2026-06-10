@@ -9,7 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/contact")({
-  head: () => ({ meta: [{ title: "Contact — Quietly" }, { name: "description", content: "Get in touch with the Quietly team." }] }),
+  head: () => ({
+    meta: [
+      { title: "Contact — Quietly" },
+      { name: "description", content: "Get in touch with the Quietly team." },
+    ],
+  }),
   component: Contact,
 });
 
@@ -50,7 +55,11 @@ function Contact() {
           </Button>
         </form>
         <p className="mt-10 text-sm text-muted-foreground">
-          Or email us at <a href="mailto:hello@quietly.app" className="text-foreground underline">hello@quietly.app</a>.
+          Or email us at{" "}
+          <a href="mailto:hello@quietly.app" className="text-foreground underline">
+            hello@quietly.app
+          </a>
+          .
         </p>
       </section>
       <Footer />

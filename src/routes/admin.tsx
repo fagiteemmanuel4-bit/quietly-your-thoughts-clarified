@@ -23,7 +23,10 @@ function AdminPage() {
   useEffect(() => {
     if (!loading) {
       if (!user) nav({ to: "/auth/login" });
-      else if (!ADMIN_EMAILS.includes(user.email ?? "") && !user.email?.endsWith("@quietly.admin")) {
+      else if (
+        !ADMIN_EMAILS.includes(user.email ?? "") &&
+        !user.email?.endsWith("@quietly.admin")
+      ) {
         nav({ to: "/app" });
       }
     }
@@ -85,7 +88,9 @@ function AdminPage() {
                   <td className="px-5 py-3">{u.name}</td>
                   <td className="px-5 py-3 text-muted-foreground">{u.email}</td>
                   <td className="px-5 py-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${u.plan === "Pro" ? "bg-foreground text-background" : "bg-accent text-muted-foreground"}`}>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full ${u.plan === "Pro" ? "bg-foreground text-background" : "bg-accent text-muted-foreground"}`}
+                    >
                       {u.plan}
                     </span>
                   </td>
@@ -97,7 +102,8 @@ function AdminPage() {
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Stats and users shown are seed data. Wire to Firestore aggregations and Firebase Auth admin SDK to populate live.
+          Stats and users shown are seed data. Wire to Firestore aggregations and Firebase Auth
+          admin SDK to populate live.
         </p>
       </div>
     </div>

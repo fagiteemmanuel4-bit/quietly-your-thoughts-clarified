@@ -8,7 +8,9 @@ import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth/login")({
-  head: () => ({ meta: [{ title: "Log in — Quietly" }, { name: "description", content: "Log in to Quietly." }] }),
+  head: () => ({
+    meta: [{ title: "Log in — Quietly" }, { name: "description", content: "Log in to Quietly." }],
+  }),
   component: LoginPage,
 });
 
@@ -33,14 +35,20 @@ function LoginPage() {
   };
 
   const google = async () => {
-    try { await signInGoogle(); nav({ to: "/app" }); }
-    catch (err) { toast.error(err instanceof Error ? err.message : "Google sign-in failed"); }
+    try {
+      await signInGoogle();
+      nav({ to: "/app" });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Google sign-in failed");
+    }
   };
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
       <div className="hidden lg:flex flex-col justify-between p-12 bg-subtle">
-        <Link to="/"><Brand size="md" /></Link>
+        <Link to="/">
+          <Brand size="md" />
+        </Link>
         <div>
           <p className="font-display text-3xl leading-snug">
             "I open Quietly the moment my head feels full. Five seconds later, it's clear."
@@ -50,9 +58,13 @@ function LoginPage() {
       </div>
       <div className="flex items-center justify-center p-8">
         <div className="w-full max-w-sm fade-up">
-          <Link to="/" className="lg:hidden mb-8 inline-block"><Brand size="md" /></Link>
+          <Link to="/" className="lg:hidden mb-8 inline-block">
+            <Brand size="md" />
+          </Link>
           <h1 className="font-display text-4xl">Welcome back.</h1>
-          <p className="text-muted-foreground mt-2 text-sm">Sign in to continue thinking quietly.</p>
+          <p className="text-muted-foreground mt-2 text-sm">
+            Sign in to continue thinking quietly.
+          </p>
           <Button onClick={google} variant="outline" className="w-full mt-8 rounded-full h-11">
             Continue with Google
           </Button>
@@ -62,18 +74,35 @@ function LoginPage() {
           <form onSubmit={submit} className="space-y-4">
             <div>
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1.5" />
+              <Input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-1.5"
+              />
             </div>
             <div>
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1.5" />
+              <Input
+                id="password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mt-1.5"
+              />
             </div>
             <Button type="submit" disabled={loading} className="w-full rounded-full h-11">
               {loading ? "Signing in…" : "Sign in"}
             </Button>
           </form>
           <p className="text-sm text-muted-foreground text-center mt-6">
-            New here? <Link to="/auth/signup" className="text-foreground hover:underline">Create an account</Link>
+            New here?{" "}
+            <Link to="/auth/signup" className="text-foreground hover:underline">
+              Create an account
+            </Link>
           </p>
         </div>
       </div>

@@ -20,12 +20,20 @@ function Settings() {
     if (!inviteEmail) return;
     setBusy(true);
     try {
-      await invite({ data: { email: inviteEmail, inviterName: user?.displayName || undefined, workspaceName: "your Quietly team" } });
+      await invite({
+        data: {
+          email: inviteEmail,
+          inviterName: user?.displayName || undefined,
+          workspaceName: "your Quietly team",
+        },
+      });
       toast.success(`Invite sent to ${inviteEmail}`);
       setInviteEmail("");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not send invite");
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -77,7 +85,9 @@ function Settings() {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
             <h2 className="text-sm font-medium">Billing & units</h2>
           </div>
-          <p className="text-sm text-muted-foreground">You're on the Beta plan. Billing arrives soon.</p>
+          <p className="text-sm text-muted-foreground">
+            You're on the Beta plan. Billing arrives soon.
+          </p>
         </section>
       </div>
     </div>
@@ -88,7 +98,9 @@ function Row({ label, value, mono }: { label: string; value: string; mono?: bool
   return (
     <div className="flex items-center justify-between gap-3 py-1.5">
       <span className="text-muted-foreground">{label}</span>
-      <span className={`truncate text-foreground/90 ${mono ? "font-mono text-[11px]" : ""}`}>{value}</span>
+      <span className={`truncate text-foreground/90 ${mono ? "font-mono text-[11px]" : ""}`}>
+        {value}
+      </span>
     </div>
   );
 }

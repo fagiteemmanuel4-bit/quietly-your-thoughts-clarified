@@ -10,7 +10,10 @@ export function Splash() {
   return (
     <div className="splash-fade-out fixed inset-0 z-[100] flex items-center justify-center bg-background">
       <div className="text-center fade-in">
-        <div className="brand-name text-5xl md:text-6xl text-foreground" style={{ fontFamily: 'Playfair Display, serif' }}>
+        <div
+          className="brand-name text-5xl md:text-6xl text-foreground"
+          style={{ fontFamily: "Playfair Display, serif" }}
+        >
           Quietly
         </div>
         <div className="mt-3 text-xs uppercase tracking-[0.3em] text-muted-foreground">

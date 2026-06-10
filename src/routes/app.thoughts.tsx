@@ -20,7 +20,17 @@ type Thought = {
   createdAt?: { toDate?: () => Date };
 };
 
-const TYPES = ["all", "notes", "summary", "todo", "message", "email", "report", "action_plan", "capture"] as const;
+const TYPES = [
+  "all",
+  "notes",
+  "summary",
+  "todo",
+  "message",
+  "email",
+  "report",
+  "action_plan",
+  "capture",
+] as const;
 
 function ThoughtsArchive() {
   const { user } = useAuth();
@@ -35,14 +45,15 @@ function ThoughtsArchive() {
     (async () => {
       setLoading(true);
       try {
-        const snap = await getDocs(query(
-          collection(db, "users", user.uid, "thoughts"),
-          orderBy("createdAt", "desc"),
-        ));
+        const snap = await getDocs(
+          query(collection(db, "users", user.uid, "thoughts"), orderBy("createdAt", "desc")),
+        );
         setItems(snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Thought, "id">) })));
       } catch {
         setItems([]);
-      } finally { setLoading(false); }
+      } finally {
+        setLoading(false);
+      }
     })();
   }, [user]);
 
@@ -92,7 +103,9 @@ function ThoughtsArchive() {
                 key={t}
                 onClick={() => setFilter(t)}
                 className={`text-xs rounded-full px-3 py-1.5 transition ${
-                  filter === t ? "bg-foreground text-background" : "border border-border text-muted-foreground hover:text-foreground"
+                  filter === t
+                    ? "bg-foreground text-background"
+                    : "border border-border text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {t === "action_plan" ? "action plan" : t}
@@ -128,15 +141,26 @@ function ThoughtsArchive() {
       </div>
 
       {active && (
-        <div className="fixed inset-0 z-50 bg-foreground/40 backdrop-blur-sm flex items-center justify-center p-4 fade-in" onClick={() => setActive(null)}>
-          <div className="w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-card rounded-md border border-border scale-fade-in" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 bg-foreground/40 backdrop-blur-sm flex items-center justify-center p-4 fade-in"
+          onClick={() => setActive(null)}
+        >
+          <div
+            className="w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-card rounded-md border border-border scale-fade-in"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="sticky top-0 bg-card border-b border-border px-5 py-4 flex items-center justify-between">
               <span className="text-[10px] uppercase tracking-wider chip-violet rounded-full px-2 py-0.5">
                 {active.format || active.type || "note"}
               </span>
               <div className="flex items-center gap-1">
                 <button
-                  onClick={() => { void navigator.clipboard.writeText(active.output || active.text || active.input || ""); toast.success("Copied"); }}
+                  onClick={() => {
+                    void navigator.clipboard.writeText(
+                      active.output || active.text || active.input || "",
+                    );
+                    toast.success("Copied");
+                  }}
                   className="h-7 w-7 grid place-items-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
                   aria-label="Copy"
                 >
@@ -149,17 +173,28 @@ function ThoughtsArchive() {
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
-                <button onClick={() => setActive(null)} className="text-muted-foreground hover:text-foreground ml-2 text-sm">Close</button>
+                <button
+                  onClick={() => setActive(null)}
+                  className="text-muted-foreground hover:text-foreground ml-2 text-sm"
+                >
+                  Close
+                </button>
               </div>
             </div>
             <div className="p-5">
               {active.input && (
                 <>
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Input</p>
-                  <pre className="whitespace-pre-wrap text-sm text-foreground/70 mb-5 font-sans">{active.input}</pre>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
+                    Input
+                  </p>
+                  <pre className="whitespace-pre-wrap text-sm text-foreground/70 mb-5 font-sans">
+                    {active.input}
+                  </pre>
                 </>
               )}
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Output</p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
+                Output
+              </p>
               <pre className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/95 font-sans">
                 {active.output || active.text}
               </pre>
