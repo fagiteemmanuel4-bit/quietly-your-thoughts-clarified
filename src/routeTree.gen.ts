@@ -26,6 +26,7 @@ import { Route as AppTeamRouteImport } from './routes/app.team'
 import { Route as AppSpacesRouteImport } from './routes/app.spaces'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppPlannerRouteImport } from './routes/app.planner'
+import { Route as AppOrchestratorRouteImport } from './routes/app.orchestrator'
 import { Route as AppCalendarRouteImport } from './routes/app.calendar'
 
 const TermsRoute = TermsRouteImport.update({
@@ -113,6 +114,11 @@ const AppPlannerRoute = AppPlannerRouteImport.update({
   path: '/planner',
   getParentRoute: () => AppRoute,
 } as any)
+const AppOrchestratorRoute = AppOrchestratorRouteImport.update({
+  id: '/orchestrator',
+  path: '/orchestrator',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCalendarRoute = AppCalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
@@ -129,6 +135,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/app/calendar': typeof AppCalendarRoute
+  '/app/orchestrator': typeof AppOrchestratorRoute
   '/app/planner': typeof AppPlannerRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/spaces': typeof AppSpacesRoute
@@ -148,6 +155,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/app/calendar': typeof AppCalendarRoute
+  '/app/orchestrator': typeof AppOrchestratorRoute
   '/app/planner': typeof AppPlannerRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/spaces': typeof AppSpacesRoute
@@ -169,6 +177,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/app/calendar': typeof AppCalendarRoute
+  '/app/orchestrator': typeof AppOrchestratorRoute
   '/app/planner': typeof AppPlannerRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/spaces': typeof AppSpacesRoute
@@ -191,6 +200,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/app/calendar'
+    | '/app/orchestrator'
     | '/app/planner'
     | '/app/settings'
     | '/app/spaces'
@@ -210,6 +220,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/app/calendar'
+    | '/app/orchestrator'
     | '/app/planner'
     | '/app/settings'
     | '/app/spaces'
@@ -230,6 +241,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/app/calendar'
+    | '/app/orchestrator'
     | '/app/planner'
     | '/app/settings'
     | '/app/spaces'
@@ -375,6 +387,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPlannerRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/orchestrator': {
+      id: '/app/orchestrator'
+      path: '/orchestrator'
+      fullPath: '/app/orchestrator'
+      preLoaderRoute: typeof AppOrchestratorRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/calendar': {
       id: '/app/calendar'
       path: '/calendar'
@@ -387,6 +406,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppCalendarRoute: typeof AppCalendarRoute
+  AppOrchestratorRoute: typeof AppOrchestratorRoute
   AppPlannerRoute: typeof AppPlannerRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppSpacesRoute: typeof AppSpacesRoute
@@ -398,6 +418,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppCalendarRoute: AppCalendarRoute,
+  AppOrchestratorRoute: AppOrchestratorRoute,
   AppPlannerRoute: AppPlannerRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppSpacesRoute: AppSpacesRoute,

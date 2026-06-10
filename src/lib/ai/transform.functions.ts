@@ -36,7 +36,8 @@ export const transformText = createServerFn({ method: "POST" })
       input: z.string().min(1).max(12000),
       format: FormatEnum,
       tone: ToneEnum,
-      context: z.string().max(500).optional(),
+      context: z.string().max(2000).optional(),
+      model: z.string().optional(),
     }),
   )
   .handler(async ({ data }) => {
@@ -44,13 +45,15 @@ export const transformText = createServerFn({ method: "POST" })
     if (!apiKey) throw new Error("AI is not configured.");
 
     const toneInstruction = data.tone && data.tone !== "neutral" ? `\nTone: ${data.tone}.` : "";
-    const contextInstruction = data.context ? `\nAdditional context: ${data.context}` : "";
+    const contextInstruction = data.context ? `\nInstructions: ${data.context}` : "";
 
     const system =
-      PROMPTS[data.format] +
+      (PROMPTS[data.format] || "") +
       toneInstruction +
       contextInstruction +
       "\n\nKeep output focused and never include preamble like 'Here is...'.";
+
+    const targetModel = data.model || "anthropic/claude-3.5-sonnet";
 
     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -61,7 +64,7 @@ export const transformText = createServerFn({ method: "POST" })
         "X-Title": "Quietly",
       },
       body: JSON.stringify({
-        model: "anthropic/claude-3.5-sonnet",
+        model: targetModel,
         messages: [
           { role: "system", content: system },
           { role: "user", content: data.input },
