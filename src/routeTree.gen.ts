@@ -20,7 +20,7 @@ import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AuthSignupRouteImport } from './routes/auth.signup'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AppWorkspaceRouteImport } from './routes/app.workspace'
-import { Route as AppHistoryRouteImport } from './routes/app.history'
+import { Route as AppThoughtsRouteImport } from './routes/app.thoughts'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -77,9 +77,9 @@ const AppWorkspaceRoute = AppWorkspaceRouteImport.update({
   path: '/workspace',
   getParentRoute: () => AppRoute,
 } as any)
-const AppHistoryRoute = AppHistoryRouteImport.update({
-  id: '/history',
-  path: '/history',
+const AppThoughtsRoute = AppThoughtsRouteImport.update({
+  id: '/thoughts',
+  path: '/thoughts',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -91,7 +91,7 @@ export interface FileRoutesByFullPath {
   '/cookies': typeof CookiesRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
-  '/app/history': typeof AppHistoryRoute
+  '/app/thoughts': typeof AppThoughtsRoute
   '/app/workspace': typeof AppWorkspaceRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
@@ -104,7 +104,7 @@ export interface FileRoutesByTo {
   '/cookies': typeof CookiesRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
-  '/app/history': typeof AppHistoryRoute
+  '/app/thoughts': typeof AppThoughtsRoute
   '/app/workspace': typeof AppWorkspaceRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
@@ -119,7 +119,7 @@ export interface FileRoutesById {
   '/cookies': typeof CookiesRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
-  '/app/history': typeof AppHistoryRoute
+  '/app/thoughts': typeof AppThoughtsRoute
   '/app/workspace': typeof AppWorkspaceRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
@@ -135,7 +135,7 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/privacy'
     | '/terms'
-    | '/app/history'
+    | '/app/thoughts'
     | '/app/workspace'
     | '/auth/login'
     | '/auth/signup'
@@ -148,7 +148,7 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/privacy'
     | '/terms'
-    | '/app/history'
+    | '/app/thoughts'
     | '/app/workspace'
     | '/auth/login'
     | '/auth/signup'
@@ -162,7 +162,7 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/privacy'
     | '/terms'
-    | '/app/history'
+    | '/app/thoughts'
     | '/app/workspace'
     | '/auth/login'
     | '/auth/signup'
@@ -260,24 +260,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWorkspaceRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/history': {
-      id: '/app/history'
-      path: '/history'
-      fullPath: '/app/history'
-      preLoaderRoute: typeof AppHistoryRouteImport
+    '/app/thoughts': {
+      id: '/app/thoughts'
+      path: '/thoughts'
+      fullPath: '/app/thoughts'
+      preLoaderRoute: typeof AppThoughtsRouteImport
       parentRoute: typeof AppRoute
     }
   }
 }
 
 interface AppRouteChildren {
-  AppHistoryRoute: typeof AppHistoryRoute
+  AppThoughtsRoute: typeof AppThoughtsRoute
   AppWorkspaceRoute: typeof AppWorkspaceRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppHistoryRoute: AppHistoryRoute,
+  AppThoughtsRoute: AppThoughtsRoute,
   AppWorkspaceRoute: AppWorkspaceRoute,
   AppIndexRoute: AppIndexRoute,
 }
@@ -298,3 +298,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
