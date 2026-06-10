@@ -10,7 +10,12 @@ import { sendWelcomeEmail } from "@/lib/email/send.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth/signup")({
-  head: () => ({ meta: [{ title: "Sign up — Quietly" }, { name: "description", content: "Create your Quietly account." }] }),
+  head: () => ({
+    meta: [
+      { title: "Sign up — Quietly" },
+      { name: "description", content: "Create your Quietly account." },
+    ],
+  }),
   component: SignupPage,
 });
 
@@ -29,22 +34,32 @@ function SignupPage() {
     setLoading(true);
     try {
       await signUpEmail(email, password, name);
-      welcome({ data: { email, name } }).catch(() => {/* non-blocking */});
-      nav({ to: "/app" });
+      welcome({ data: { email, name } }).catch(() => {
+        /* non-blocking */
+      });
+      nav({ to: "/onboarding" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Signup failed");
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const google = async () => {
-    try { await signInGoogle(); nav({ to: "/app" }); }
-    catch (err) { toast.error(err instanceof Error ? err.message : "Google sign-in failed"); }
+    try {
+      await signInGoogle();
+      nav({ to: "/onboarding" });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Google sign-in failed");
+    }
   };
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
       <div className="hidden lg:flex flex-col justify-between p-12 bg-subtle">
-        <Link to="/"><Brand size="md" /></Link>
+        <Link to="/">
+          <Brand size="md" />
+        </Link>
         <div>
           <p className="font-display text-3xl leading-snug">
             "Cleaner thinking in two clicks. It's the calmest tool on my dock."
@@ -54,9 +69,13 @@ function SignupPage() {
       </div>
       <div className="flex items-center justify-center p-8">
         <div className="w-full max-w-sm fade-up">
-          <Link to="/" className="lg:hidden mb-8 inline-block"><Brand size="md" /></Link>
+          <Link to="/" className="lg:hidden mb-8 inline-block">
+            <Brand size="md" />
+          </Link>
           <h1 className="font-display text-4xl">Create your account.</h1>
-          <p className="text-muted-foreground mt-2 text-sm">Start turning noise into clarity. It's free.</p>
+          <p className="text-muted-foreground mt-2 text-sm">
+            Start turning noise into clarity. It's free.
+          </p>
           <Button onClick={google} variant="outline" className="w-full mt-8 rounded-full h-11">
             Continue with Google
           </Button>
@@ -66,15 +85,34 @@ function SignupPage() {
           <form onSubmit={submit} className="space-y-4">
             <div>
               <Label htmlFor="name">Name</Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="mt-1.5" />
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="mt-1.5"
+              />
             </div>
             <div>
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1.5" />
+              <Input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-1.5"
+              />
             </div>
             <div>
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1.5" />
+              <Input
+                id="password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mt-1.5"
+              />
               <p className="text-xs text-muted-foreground mt-1.5">At least 6 characters.</p>
             </div>
             <Button type="submit" disabled={loading} className="w-full rounded-full h-11">
@@ -83,11 +121,20 @@ function SignupPage() {
           </form>
           <p className="text-xs text-muted-foreground text-center mt-6">
             By signing up, you agree to our{" "}
-            <Link to="/terms" className="underline">Terms</Link> and{" "}
-            <Link to="/privacy" className="underline">Privacy Policy</Link>.
+            <Link to="/terms" className="underline">
+              Terms
+            </Link>{" "}
+            and{" "}
+            <Link to="/privacy" className="underline">
+              Privacy Policy
+            </Link>
+            .
           </p>
           <p className="text-sm text-muted-foreground text-center mt-4">
-            Already have an account? <Link to="/auth/login" className="text-foreground hover:underline">Sign in</Link>
+            Already have an account?{" "}
+            <Link to="/auth/login" className="text-foreground hover:underline">
+              Sign in
+            </Link>
           </p>
         </div>
       </div>

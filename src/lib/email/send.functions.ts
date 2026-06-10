@@ -55,16 +55,22 @@ export const sendWelcomeEmail = createServerFn({ method: "POST" })
         <a href="https://quietly.app/app" style="background:#0E0E0E;color:#F9F7F4;padding:12px 22px;text-decoration:none;border-radius:6px;font-size:14px;">Open Quietly</a>
       </p>
     `;
-    await sendEmail(data.email, "Welcome to Quietly — your quiet space is ready", shell("Your thoughts deserve clarity.", body));
+    await sendEmail(
+      data.email,
+      "Welcome to Quietly — your quiet space is ready",
+      shell("Your thoughts deserve clarity.", body),
+    );
     return { ok: true };
   });
 
 export const sendInviteEmail = createServerFn({ method: "POST" })
-  .inputValidator(z.object({
-    email: z.string().email(),
-    inviterName: z.string().optional(),
-    workspaceName: z.string().optional(),
-  }))
+  .inputValidator(
+    z.object({
+      email: z.string().email(),
+      inviterName: z.string().optional(),
+      workspaceName: z.string().optional(),
+    }),
+  )
   .handler(async ({ data }) => {
     const who = data.inviterName || "Someone";
     const ws = data.workspaceName || "their team";
@@ -75,6 +81,10 @@ export const sendInviteEmail = createServerFn({ method: "POST" })
         <a href="https://quietly.app/auth/signup?invite=${encodeURIComponent(data.email)}" style="background:#0E0E0E;color:#F9F7F4;padding:12px 22px;text-decoration:none;border-radius:6px;font-size:14px;">Accept invite</a>
       </p>
     `;
-    await sendEmail(data.email, `${who} invited you to Quietly`, shell("You've been invited.", body));
+    await sendEmail(
+      data.email,
+      `${who} invited you to Quietly`,
+      shell("You've been invited.", body),
+    );
     return { ok: true };
   });

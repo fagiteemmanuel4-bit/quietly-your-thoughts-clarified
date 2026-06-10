@@ -10,8 +10,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const stored = (typeof window !== "undefined" && localStorage.getItem("theme")) as Theme | null;
-    const initial: Theme = stored
-      ?? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    const initial: Theme =
+      stored ?? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     setThemeState(initial);
     document.documentElement.classList.toggle("dark", initial === "dark");
   }, []);
@@ -19,11 +19,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const setTheme = (t: Theme) => {
     setThemeState(t);
     document.documentElement.classList.toggle("dark", t === "dark");
-    try { localStorage.setItem("theme", t); } catch {/* ignore */}
+    try {
+      localStorage.setItem("theme", t);
+    } catch {
+      /* ignore */
+    }
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggle: () => setTheme(theme === "dark" ? "light" : "dark") }}>
+    <ThemeContext.Provider
+      value={{ theme, setTheme, toggle: () => setTheme(theme === "dark" ? "light" : "dark") }}
+    >
       {children}
     </ThemeContext.Provider>
   );

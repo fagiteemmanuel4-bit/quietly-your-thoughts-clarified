@@ -11,7 +11,9 @@ export function Brand({ size = "md", to = "/" }: { size?: "sm" | "md" | "lg"; to
 
 export function BetaPill({ className = "" }: { className?: string }) {
   return (
-    <span className={`inline-flex items-center rounded-full bg-foreground/8 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-foreground/70 border border-foreground/10 ${className}`}>
+    <span
+      className={`inline-flex items-center rounded-full bg-foreground/8 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-foreground/70 border border-foreground/10 ${className}`}
+    >
       Beta
     </span>
   );

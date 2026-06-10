@@ -5,10 +5,24 @@ import { Brand, BetaPill } from "@/components/Brand";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { QuickCapture } from "@/components/QuickCapture";
+import { FocusTimer } from "@/components/FocusTimer";
 import {
-  Home, Pencil, Archive, ListChecks, Calendar, Users, Share2,
-  Settings, Shield, LogOut, ChevronsLeft, ChevronsRight, Plus,
+  Home,
+  Pencil,
+  Archive,
+  ListChecks,
+  Calendar,
+  Users,
+  Share2,
+  Settings,
+  Shield,
+  LogOut,
+  ChevronsLeft,
+  ChevronsRight,
+  Plus,
+  Timer,
 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export const Route = createFileRoute("/app")({
   ssr: false,
@@ -44,7 +58,8 @@ function AppLayout() {
   }
 
   const isAdmin = user.email === "admin@quietly.app" || user.email?.endsWith("@quietly.admin");
-  const accountType = (typeof window !== "undefined" && localStorage.getItem("accountType")) || "Personal";
+  const accountType =
+    (typeof window !== "undefined" && localStorage.getItem("accountType")) || "Personal";
 
   const navItems = [
     { to: "/app", label: "Dashboard", icon: Home, exact: true },
@@ -76,14 +91,20 @@ function AppLayout() {
           collapsed ? "w-16" : "w-60"
         }`}
       >
-        <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between"} px-3 py-4`}>
+        <div
+          className={`flex items-center ${collapsed ? "justify-center" : "justify-between"} px-3 py-4`}
+        >
           {!collapsed && <Brand size="md" />}
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition"
             aria-label="Toggle sidebar"
           >
-            {collapsed ? <ChevronsRight className="h-4 w-4" /> : <ChevronsLeft className="h-4 w-4" />}
+            {collapsed ? (
+              <ChevronsRight className="h-4 w-4" />
+            ) : (
+              <ChevronsLeft className="h-4 w-4" />
+            )}
           </button>
         </div>
 
@@ -96,7 +117,9 @@ function AppLayout() {
                 key={item.to}
                 to={item.to}
                 className={`group flex items-center gap-3 rounded-md px-2.5 py-2 text-sm transition ${
-                  active ? "bg-foreground text-background" : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                  active
+                    ? "bg-foreground text-background"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
                 } ${collapsed ? "justify-center" : ""}`}
                 title={collapsed ? item.label : undefined}
               >
@@ -111,25 +134,40 @@ function AppLayout() {
           {!collapsed ? (
             <div className="rounded-md border border-border/60 bg-card p-3">
               <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-foreground text-background grid place-items-center text-xs font-medium">{initial}</div>
+                <div className="h-8 w-8 rounded-full bg-foreground text-background grid place-items-center text-xs font-medium">
+                  {initial}
+                </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs truncate font-medium">{user.displayName || user.email}</p>
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{accountType}</p>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    {accountType}
+                  </p>
                 </div>
                 <BetaPill />
               </div>
               <div className="mt-3 flex items-center justify-between">
                 <ThemeToggle />
-                <Button onClick={() => logout()} variant="ghost" size="sm" className="text-muted-foreground h-7 px-2">
+                <Button
+                  onClick={() => logout()}
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground h-7 px-2"
+                >
                   <LogOut className="h-3.5 w-3.5 mr-1" /> Sign out
                 </Button>
               </div>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-foreground text-background grid place-items-center text-xs font-medium">{initial}</div>
+              <div className="h-8 w-8 rounded-full bg-foreground text-background grid place-items-center text-xs font-medium">
+                {initial}
+              </div>
               <ThemeToggle />
-              <button onClick={() => logout()} className="h-7 w-7 grid place-items-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground" aria-label="Sign out">
+              <button
+                onClick={() => logout()}
+                className="h-7 w-7 grid place-items-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+                aria-label="Sign out"
+              >
                 <LogOut className="h-3.5 w-3.5" />
               </button>
             </div>
@@ -138,11 +176,18 @@ function AppLayout() {
       </aside>
 
       {/* Mobile top bar */}
-      <div className="md:hidden fixed top-0 inset-x-0 z-30 h-14 border-b border-border/60 bg-background/90 backdrop-blur flex items-center justify-between px-4">
-        <div className="flex items-center gap-2"><Brand size="sm" /><BetaPill /></div>
+      <div className="md:hidden fixed top-0 inset-x-0 z-30 h-16 glass flex items-center justify-between px-6 border-none rounded-b-3xl mx-2 mt-2 shadow-soft">
+        <div className="flex items-center gap-2">
+          <Brand size="sm" />
+          <BetaPill />
+        </div>
         <div className="flex items-center gap-1">
           <ThemeToggle />
-          <button onClick={() => logout()} className="h-8 w-8 grid place-items-center rounded-md text-muted-foreground hover:bg-accent" aria-label="Sign out">
+          <button
+            onClick={() => logout()}
+            className="h-9 w-9 grid place-items-center rounded-xl text-muted-foreground hover:bg-accent haptic-touch"
+            aria-label="Sign out"
+          >
             <LogOut className="h-4 w-4" />
           </button>
         </div>
@@ -152,19 +197,40 @@ function AppLayout() {
         <Outlet />
       </main>
 
-      {/* Quick Capture FAB */}
-      <button
-        onClick={() => setQuickOpen(true)}
-        className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-30 h-12 w-12 rounded-full bg-foreground text-background grid place-items-center shadow-lift hover:scale-105 transition"
-        aria-label="Quick capture"
-        title="Quick capture (drop a thought)"
-      >
-        <Plus className="h-5 w-5" />
-      </button>
+      {/* Action Buttons Container */}
+      <div className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-30 flex flex-col gap-3">
+        {/* Focus Timer Popover */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              className="h-12 w-12 rounded-full bg-subtle border border-border/60 text-foreground grid place-items-center shadow-lift hover:scale-105 transition"
+              aria-label="Focus timer"
+            >
+              <Timer className="h-5 w-5" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            side="left"
+            className="w-80 p-0 bg-transparent border-none shadow-none mb-4"
+          >
+            <FocusTimer />
+          </PopoverContent>
+        </Popover>
+
+        {/* Quick Capture FAB */}
+        <button
+          onClick={() => setQuickOpen(true)}
+          className="h-12 w-12 rounded-full bg-foreground text-background grid place-items-center shadow-lift hover:scale-105 transition"
+          aria-label="Quick capture"
+          title="Quick capture (drop a thought)"
+        >
+          <Plus className="h-5 w-5" />
+        </button>
+      </div>
       <QuickCapture open={quickOpen} onClose={() => setQuickOpen(false)} />
 
       {/* Mobile bottom tabs */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 h-16 border-t border-border/60 bg-background/95 backdrop-blur flex">
+      <nav className="md:hidden fixed bottom-6 inset-x-6 z-30 h-16 glass rounded-full flex items-center px-2 shadow-lift border-none">
         {mobileItems.map((item) => {
           const Icon = item.icon;
           const active = item.exact ? path === item.to : path.startsWith(item.to);
@@ -172,12 +238,15 @@ function AppLayout() {
             <Link
               key={item.to}
               to={item.to}
-              className={`flex-1 flex flex-col items-center justify-center gap-1 text-[10px] transition ${
-                active ? "text-foreground" : "text-muted-foreground"
+              className={`flex-1 flex flex-col items-center justify-center gap-1 text-[10px] transition haptic-touch ${
+                active ? "text-foreground scale-110" : "text-muted-foreground"
               }`}
             >
-              <Icon className="h-4 w-4" />
-              {item.label}
+              <div
+                className={`p-2 rounded-full transition-colors ${active ? "bg-foreground/5" : ""}`}
+              >
+                <Icon className={`h-5 w-5 ${active ? "stroke-[2.5px]" : "stroke-[1.5px]"}`} />
+              </div>
             </Link>
           );
         })}

@@ -17,8 +17,7 @@ const PROMPTS: Record<Format, string> = {
     "Rewrite the user's raw thoughts as clean, organized notes. Use clear section headings (## H2) and concise sentences. Preserve meaning. Markdown.",
   summary:
     "Distill the user's input into a tight bullet-point summary. Each bullet is one short, crisp line. Use markdown bullets (-).",
-  todo:
-    "Extract every actionable item as a clear to-do list using markdown checkboxes (- [ ] task). Start each with a verb. Be specific.",
+  todo: "Extract every actionable item as a clear to-do list using markdown checkboxes (- [ ] task). Start each with a verb. Be specific.",
   message:
     "Rewrite the user's raw thoughts into a single polished message ready to send. Keep their voice, but make it clear, warm, well-structured. Plain text.",
   email:
@@ -44,12 +43,13 @@ export const transformText = createServerFn({ method: "POST" })
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) throw new Error("AI is not configured.");
 
-    const toneInstruction = data.tone && data.tone !== "neutral"
-      ? `\nTone: ${data.tone}.` : "";
-    const contextInstruction = data.context
-      ? `\nAdditional context: ${data.context}` : "";
+    const toneInstruction = data.tone && data.tone !== "neutral" ? `\nTone: ${data.tone}.` : "";
+    const contextInstruction = data.context ? `\nAdditional context: ${data.context}` : "";
 
-    const system = PROMPTS[data.format] + toneInstruction + contextInstruction +
+    const system =
+      PROMPTS[data.format] +
+      toneInstruction +
+      contextInstruction +
       "\n\nKeep output focused and never include preamble like 'Here is...'.";
 
     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -96,11 +96,14 @@ export const dailyBrief = createServerFn({ method: "POST" })
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) throw new Error("AI is not configured.");
 
-    const user = [
-      data.name ? `User: ${data.name}` : "",
-      data.thoughts?.length ? `Recent thoughts:\n${data.thoughts.join("\n---\n")}` : "",
-      data.tasks?.length ? `Open tasks:\n${data.tasks.join("\n")}` : "",
-    ].filter(Boolean).join("\n\n") || "No data yet — give a calm, encouraging blank-slate brief.";
+    const user =
+      [
+        data.name ? `User: ${data.name}` : "",
+        data.thoughts?.length ? `Recent thoughts:\n${data.thoughts.join("\n---\n")}` : "",
+        data.tasks?.length ? `Open tasks:\n${data.tasks.join("\n")}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n\n") || "No data yet — give a calm, encouraging blank-slate brief.";
 
     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -113,7 +116,11 @@ export const dailyBrief = createServerFn({ method: "POST" })
       body: JSON.stringify({
         model: "anthropic/claude-3.5-sonnet",
         messages: [
-          { role: "system", content: "You write a 3-4 sentence calm daily brief for a thinker's workspace. No headings, no lists — just a flowing, gently focused paragraph that highlights what matters today. Address the user by first name if provided." },
+          {
+            role: "system",
+            content:
+              "You write a 3-4 sentence calm daily brief for a thinker's workspace. No headings, no lists — just a flowing, gently focused paragraph that highlights what matters today. Address the user by first name if provided.",
+          },
           { role: "user", content: user },
         ],
         temperature: 0.6,
@@ -142,7 +149,11 @@ export const suggestTasks = createServerFn({ method: "POST" })
       body: JSON.stringify({
         model: "anthropic/claude-3.5-sonnet",
         messages: [
-          { role: "system", content: 'Extract 3-7 concrete actionable tasks from the user\'s recent thoughts. Respond ONLY with a JSON array: [{"title":"...","priority":"urgent"|"later"|"someday"}]. No prose, no code fences.' },
+          {
+            role: "system",
+            content:
+              'Extract 3-7 concrete actionable tasks from the user\'s recent thoughts. Respond ONLY with a JSON array: [{"title":"...","priority":"urgent"|"later"|"someday"}]. No prose, no code fences.',
+          },
           { role: "user", content: data.thoughts.join("\n---\n") },
         ],
         temperature: 0.3,
@@ -152,9 +163,15 @@ export const suggestTasks = createServerFn({ method: "POST" })
     if (!res.ok) throw new Error(`Suggest error: ${res.status}`);
     const json = (await res.json()) as { choices: { message: { content: string } }[] };
     const raw = json.choices[0]?.message?.content?.trim() ?? "[]";
-    const cleaned = raw.replace(/^```json?\s*/i, "").replace(/```$/i, "").trim();
+    const cleaned = raw
+      .replace(/^```json?\s*/i, "")
+      .replace(/```$/i, "")
+      .trim();
     try {
-      const parsed = JSON.parse(cleaned) as { title: string; priority: "urgent" | "later" | "someday" }[];
+      const parsed = JSON.parse(cleaned) as {
+        title: string;
+        priority: "urgent" | "later" | "someday";
+      }[];
       return { tasks: parsed };
     } catch {
       return { tasks: [] as { title: string; priority: "urgent" | "later" | "someday" }[] };

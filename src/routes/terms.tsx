@@ -2,7 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { LegalLayout } from "./privacy";
 
 export const Route = createFileRoute("/terms")({
-  head: () => ({ meta: [{ title: "Terms of Service — Quietly" }, { name: "description", content: "The terms governing your use of Quietly." }] }),
+  head: () => ({
+    meta: [
+      { title: "Terms of Service — Quietly" },
+      { name: "description", content: "The terms governing your use of Quietly." },
+    ],
+  }),
   component: Terms,
 });
 
@@ -10,8 +15,8 @@ function Terms() {
   return (
     <LegalLayout title="Terms of Service" updated="June 9, 2026">
       <p>
-        These Terms of Service ("Terms") govern your access to and use of Quietly (the "Service"). By
-        using the Service, you agree to be bound by these Terms.
+        These Terms of Service ("Terms") govern your access to and use of Quietly (the "Service").
+        By using the Service, you agree to be bound by these Terms.
       </p>
 
       <h2 className="font-display text-2xl mt-10">1. Eligibility</h2>
@@ -34,8 +39,8 @@ function Terms() {
 
       <h2 className="font-display text-2xl mt-10">4. Your content</h2>
       <p>
-        You retain ownership of your Input and Output. You grant us a limited license to process your
-        content solely to provide the Service.
+        You retain ownership of your Input and Output. You grant us a limited license to process
+        your content solely to provide the Service.
       </p>
 
       <h2 className="font-display text-2xl mt-10">5. Subscriptions and payment</h2>
@@ -47,8 +52,9 @@ function Terms() {
 
       <h2 className="font-display text-2xl mt-10">6. AI limitations</h2>
       <p>
-        AI Output may be inaccurate, incomplete, or offensive. Do not rely on the Service for medical,
-        legal, financial, or other professional advice. You are responsible for reviewing Output.
+        AI Output may be inaccurate, incomplete, or offensive. Do not rely on the Service for
+        medical, legal, financial, or other professional advice. You are responsible for reviewing
+        Output.
       </p>
 
       <h2 className="font-display text-2xl mt-10">7. Termination</h2>
@@ -59,8 +65,8 @@ function Terms() {
 
       <h2 className="font-display text-2xl mt-10">8. Disclaimers</h2>
       <p>
-        The Service is provided "as is" without warranties of any kind, express or implied, including
-        merchantability, fitness for a particular purpose, and non-infringement.
+        The Service is provided "as is" without warranties of any kind, express or implied,
+        including merchantability, fitness for a particular purpose, and non-infringement.
       </p>
 
       <h2 className="font-display text-2xl mt-10">9. Limitation of liability</h2>
@@ -70,13 +76,21 @@ function Terms() {
       </p>
 
       <h2 className="font-display text-2xl mt-10">10. Governing law</h2>
-      <p>These Terms are governed by the laws of the jurisdiction in which Quietly is established.</p>
+      <p>
+        These Terms are governed by the laws of the jurisdiction in which Quietly is established.
+      </p>
 
       <h2 className="font-display text-2xl mt-10">11. Changes</h2>
       <p>We may modify these Terms; continued use after changes means you accept them.</p>
 
       <h2 className="font-display text-2xl mt-10">12. Contact</h2>
-      <p>Reach us at <a href="mailto:legal@quietly.app" className="underline">legal@quietly.app</a>.</p>
+      <p>
+        Reach us at{" "}
+        <a href="mailto:legal@quietly.app" className="underline">
+          legal@quietly.app
+        </a>
+        .
+      </p>
     </LegalLayout>
   );
 }

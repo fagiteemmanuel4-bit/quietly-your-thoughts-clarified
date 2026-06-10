@@ -14,19 +14,45 @@ export function Navbar() {
           <BetaPill />
         </div>
         <nav className="hidden items-center gap-7 md:flex">
-          <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Home</Link>
-          <a href="/#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</a>
-          <a href="/#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
-          <Link to="/contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Contact</Link>
+          <Link
+            to="/"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Home
+          </Link>
+          <a
+            href="/#features"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Features
+          </a>
+          <a
+            href="/#pricing"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Pricing
+          </a>
+          <Link
+            to="/contact"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Contact
+          </Link>
         </nav>
         <div className="flex items-center gap-2">
           <ThemeToggle />
           {user ? (
-            <Button asChild size="sm" className="rounded-md"><Link to="/app">Open app</Link></Button>
+            <Button asChild size="sm" className="rounded-md">
+              <Link to="/app">Open app</Link>
+            </Button>
           ) : (
             <>
-              <Button asChild size="sm" variant="ghost"><Link to="/auth/login">Sign in</Link></Button>
-              <Button asChild size="sm" className="rounded-md"><Link to="/auth/signup">Get started</Link></Button>
+              <Button asChild size="sm" variant="ghost">
+                <Link to="/auth/login">Sign in</Link>
+              </Button>
+              <Button asChild size="sm" className="rounded-md">
+                <Link to="/auth/signup">Get started</Link>
+              </Button>
             </>
           )}
         </div>

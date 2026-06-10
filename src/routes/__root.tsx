@@ -53,12 +53,18 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
-            onClick={() => { router.invalidate(); reset(); }}
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
             className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
             Try again
           </button>
-          <a href="/" className="rounded-md border border-input bg-background px-4 py-2 text-sm hover:bg-accent">
+          <a
+            href="/"
+            className="rounded-md border border-input bg-background px-4 py-2 text-sm hover:bg-accent"
+          >
             Go home
           </a>
         </div>
@@ -73,7 +79,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Quietly — Turn messy thoughts into clarity" },
-      { name: "description", content: "Quietly is a calm, AI-powered space that transforms raw thoughts into clean notes, summaries, to-dos, and polished messages — instantly." },
+      {
+        name: "description",
+        content:
+          "Quietly is a calm, AI-powered space that transforms raw thoughts into clean notes, summaries, to-dos, and polished messages — instantly.",
+      },
       { property: "og:title", content: "Quietly — Turn messy thoughts into clarity" },
       { property: "og:description", content: "Paste anything. Get structure instantly." },
       { property: "og:type", content: "website" },
@@ -83,7 +93,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,
