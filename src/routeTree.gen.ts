@@ -19,6 +19,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AuthSignupRouteImport } from './routes/auth.signup'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
+import { Route as AppWorkspaceRouteImport } from './routes/app.workspace'
 import { Route as AppHistoryRouteImport } from './routes/app.history'
 
 const TermsRoute = TermsRouteImport.update({
@@ -71,6 +72,11 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppWorkspaceRoute = AppWorkspaceRouteImport.update({
+  id: '/workspace',
+  path: '/workspace',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppHistoryRoute = AppHistoryRouteImport.update({
   id: '/history',
   path: '/history',
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/app/history': typeof AppHistoryRoute
+  '/app/workspace': typeof AppWorkspaceRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/app/': typeof AppIndexRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/app/history': typeof AppHistoryRoute
+  '/app/workspace': typeof AppWorkspaceRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/app': typeof AppIndexRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/app/history': typeof AppHistoryRoute
+  '/app/workspace': typeof AppWorkspaceRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/app/': typeof AppIndexRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/app/history'
+    | '/app/workspace'
     | '/auth/login'
     | '/auth/signup'
     | '/app/'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/app/history'
+    | '/app/workspace'
     | '/auth/login'
     | '/auth/signup'
     | '/app'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/app/history'
+    | '/app/workspace'
     | '/auth/login'
     | '/auth/signup'
     | '/app/'
@@ -241,6 +253,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/workspace': {
+      id: '/app/workspace'
+      path: '/workspace'
+      fullPath: '/app/workspace'
+      preLoaderRoute: typeof AppWorkspaceRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/history': {
       id: '/app/history'
       path: '/history'
@@ -253,11 +272,13 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppHistoryRoute: typeof AppHistoryRoute
+  AppWorkspaceRoute: typeof AppWorkspaceRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppHistoryRoute: AppHistoryRoute,
+  AppWorkspaceRoute: AppWorkspaceRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
