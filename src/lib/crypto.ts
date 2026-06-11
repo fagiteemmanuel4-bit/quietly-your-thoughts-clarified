@@ -2,7 +2,7 @@
  * Minimalist AES-256-GCM encryption for the browser.
  */
 
-async function getDerivedKey(password: string, salt: Uint8Array) {
+async function getDerivedKey(password: string, salt: BufferSource) {
   const encoder = new TextEncoder();
   const baseKey = await window.crypto.subtle.importKey(
     "raw",
