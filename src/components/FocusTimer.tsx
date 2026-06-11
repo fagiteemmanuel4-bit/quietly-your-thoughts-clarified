@@ -32,7 +32,7 @@ export function FocusTimer() {
       }
       setIsActive(false);
     }
-    return () => { if (interval) clearInterval(interval); };
+    return () => clearInterval(interval);
   }, [isActive, timeLeft, isBreak]);
 
   const toggle = () => setIsActive(!isActive);

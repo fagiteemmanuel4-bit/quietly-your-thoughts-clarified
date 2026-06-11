@@ -232,7 +232,7 @@ function AdvancedWorkspace() {
           </div>
         </header>
 
-        <ScrollArea className="flex-1 z-1" ref={scrollRef}>
+        <ScrollArea className="flex-1 z-1" viewportRef={scrollRef}>
           <div className="max-w-4xl mx-auto px-8 py-10 space-y-10">
             {currentMessages.map((m) => (
               <div key={m.id} className={`flex gap-6 ${m.role === "user" ? "flex-row-reverse" : "flex-row"} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
