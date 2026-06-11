@@ -5,7 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth-context";
+import { sendPasswordResetEmail } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/auth/login")({
   head: () => ({
@@ -20,6 +23,8 @@ function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,11 +40,29 @@ function LoginPage() {
   };
 
   const google = async () => {
+    setGoogleLoading(true);
     try {
       await signInGoogle();
       nav({ to: "/app" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Google sign-in failed");
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const forgot = async () => {
+    if (!email) return toast.error("Enter your email above first.");
+    setForgotLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, email, {
+        url: `${window.location.origin}/auth/login`,
+      });
+      toast.success("Password reset link sent. Check your inbox.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not send reset email");
+    } finally {
+      setForgotLoading(false);
     }
   };
 
@@ -65,7 +88,13 @@ function LoginPage() {
           <p className="text-muted-foreground mt-2 text-sm">
             Sign in to continue thinking quietly.
           </p>
-          <Button onClick={google} variant="outline" className="w-full mt-8 rounded-full h-11">
+          <Button
+            onClick={google}
+            variant="outline"
+            disabled={googleLoading}
+            className="w-full mt-8 rounded-full h-11"
+          >
+            {googleLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             Continue with Google
           </Button>
           <div className="flex items-center gap-3 my-6 text-xs text-muted-foreground">
@@ -84,7 +113,18 @@ function LoginPage() {
               />
             </div>
             <div>
-              <Label htmlFor="password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <button
+                  type="button"
+                  onClick={forgot}
+                  disabled={forgotLoading}
+                  className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center"
+                >
+                  {forgotLoading && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
+                  Forgot?
+                </button>
+              </div>
               <Input
                 id="password"
                 type="password"
@@ -95,6 +135,7 @@ function LoginPage() {
               />
             </div>
             <Button type="submit" disabled={loading} className="w-full rounded-full h-11">
+              {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {loading ? "Signing in…" : "Sign in"}
             </Button>
           </form>
