@@ -1,330 +1,399 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useState, useRef, useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { transformText, type Format } from "@/lib/ai/transform.functions";
+import { agentChat } from "@/lib/ai/agent.functions";
 import { useAuth } from "@/lib/auth-context";
-import { db } from "@/lib/firebase";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  StickyNote,
-  FileText,
-  ListChecks,
-  MessageSquare,
-  Mail,
-  FileBarChart,
-  Target,
-  Wand2,
-  Copy,
-  RefreshCcw,
-  Save,
+  Send,
+  Mic,
   Sparkles,
+  ChevronRight,
+  ThumbsUp,
+  ThumbsDown,
+  RotateCcw,
+  Share2,
+  Brain,
+  MessageSquare,
+  LayoutGrid,
+  Plus,
+  Search,
+  Hash,
+  Copy,
+  Check,
   History,
-  X,
-  ChevronLeft,
+  MoreVertical,
+  ArrowUpRight
 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const Route = createFileRoute("/app/workspace")({
-  component: Workspace,
+  component: AdvancedWorkspace,
 });
 
-const FORMATS: { id: Format; label: string; icon: React.ComponentType<{ className?: string }> }[] =
-  [
-    { id: "notes", label: "Notes", icon: StickyNote },
-    { id: "summary", label: "Summary", icon: FileText },
-    { id: "todo", label: "To-do", icon: ListChecks },
-    { id: "message", label: "Message", icon: MessageSquare },
-    { id: "email", label: "Email", icon: Mail },
-    { id: "report", label: "Report", icon: FileBarChart },
-    { id: "action_plan", label: "Action plan", icon: Target },
+type Message = {
+  role: "user" | "assistant" | "system";
+  content: string;
+  reasoning?: string;
+  id: string;
+  timestamp: number;
+};
+
+type Room = {
+  id: string;
+  name: string;
+  type: "team" | "topic";
+  lastMessage?: string;
+};
+
+function AdvancedWorkspace() {
+  const { user } = useAuth();
+  const chatFn = useServerFn(agentChat);
+  const [input, setInput] = useState("");
+  const [activeRoom, setActiveRoom] = useState<string>("general");
+  const [messages, setMessages] = useState<Record<string, Message[]>>({
+    general: [
+      {
+        role: "assistant",
+        content: "Hello. I am Quietly. Your context is currently set to **General Workspace**. How can I help you synthesize clarity today?",
+        id: "initial",
+        timestamp: Date.now(),
+      },
+    ],
+    strategy: [
+        {
+            role: "assistant",
+            content: "Welcome to the **Strategic Room**. I have loaded the Q3 roadmap into my context.",
+            id: "strat-initial",
+            timestamp: Date.now(),
+        }
+    ]
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const rooms: Room[] = [
+    { id: "general", name: "General Workspace", type: "team", lastMessage: "Synthesize clarity..." },
+    { id: "strategy", name: "Q3 Strategy", type: "topic", lastMessage: "Roadmap loaded." },
+    { id: "design", name: "Design System", type: "topic", lastMessage: "Aurora assets ready." },
   ];
 
-const TONES = ["neutral", "warm", "concise", "formal", "casual"] as const;
-type Tone = (typeof TONES)[number];
-
-const PLACEHOLDERS = [
-  "What's on your mind?",
-  "Drop a meeting note…",
-  "Describe your idea…",
-  "Brain dump in progress…",
-  "Paste anything. We'll sort it out.",
-];
-
-type Version = { output: string; format: Format; tone: Tone; at: number };
-
-function Workspace() {
-  const transform = useServerFn(transformText);
-  const { user } = useAuth();
-  const [input, setInput] = useState("");
-  const [format, setFormat] = useState<Format>("notes");
-  const [tone, setTone] = useState<Tone>("neutral");
-  const [contextChip, setContextChip] = useState("");
-  const [output, setOutput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [versions, setVersions] = useState<Version[]>([]);
-  const [showHistory, setShowHistory] = useState(false);
-  const [placeholder, setPlaceholder] = useState(PLACEHOLDERS[0]);
-  const animRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
   useEffect(() => {
-    let i = 0;
-    const id = setInterval(() => {
-      i = (i + 1) % PLACEHOLDERS.length;
-      setPlaceholder(PLACEHOLDERS[i]);
-    }, 4200);
-    return () => clearInterval(id);
-  }, []);
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, activeRoom]);
 
-  useEffect(
-    () => () => {
-      if (animRef.current) clearInterval(animRef.current);
-    },
-    [],
-  );
+  const onSend = async () => {
+    if (!input.trim() || loading) return;
 
-  const animateOutput = (full: string) => {
-    if (animRef.current) clearInterval(animRef.current);
-    setOutput("");
-    let i = 0;
-    animRef.current = setInterval(() => {
-      i += Math.max(2, Math.floor(full.length / 100));
-      setOutput(full.slice(0, i));
-      if (i >= full.length) {
-        setOutput(full);
-        if (animRef.current) clearInterval(animRef.current);
-      }
-    }, 14);
-  };
+    const userMsg: Message = {
+        role: "user",
+        content: input,
+        id: Date.now().toString(),
+        timestamp: Date.now()
+    };
 
-  const run = async () => {
-    if (!input.trim()) return toast.error("Add some text first.");
+    setMessages(prev => ({
+        ...prev,
+        [activeRoom]: [...(prev[activeRoom] || []), userMsg]
+    }));
+
+    setInput("");
     setLoading(true);
-    setOutput("");
+
     try {
-      const res = await transform({
-        data: { input, format, tone, context: contextChip || undefined },
+      const res = await chatFn({
+        data: {
+          messages: (messages[activeRoom] || []).concat(userMsg).map(m => ({ role: m.role, content: m.content })),
+          userId: user?.uid || "anon",
+          userName: user?.displayName || undefined,
+        }
       });
-      animateOutput(res.output);
-      setVersions((prev) =>
-        [{ output: res.output, format, tone, at: Date.now() }, ...prev].slice(0, 12),
-      );
+
+      setMessages(prev => ({
+        ...prev,
+        [activeRoom]: [...(prev[activeRoom] || []), {
+            role: "assistant",
+            content: res.text,
+            reasoning: res.reasoning,
+            id: (Date.now() + 1).toString(),
+            timestamp: Date.now()
+        }]
+      }));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Something went wrong");
+      toast.error("AI connection interrupted.");
     } finally {
       setLoading(false);
     }
   };
 
-  const copy = async () => {
-    if (!output) return;
-    await navigator.clipboard.writeText(output);
-    toast.success("Copied");
+  const startListening = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast.error("Voice input not supported in this browser.");
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.start();
+    setIsListening(true);
+    recognition.onresult = (event: any) => {
+      setInput(event.results[0][0].transcript);
+      setIsListening(false);
+    };
+    recognition.onerror = () => setIsListening(false);
   };
 
-  const save = async () => {
-    if (!output || !user) return;
-    try {
-      await addDoc(collection(db, "users", user.uid, "thoughts"), {
-        input,
-        output,
-        format,
-        tone,
-        type: "transform",
-        createdAt: serverTimestamp(),
-      });
-      toast.success("Saved to thoughts");
-    } catch {
-      toast.error("Could not save. Check Firestore rules.");
-    }
-  };
+  const currentMessages = messages[activeRoom] || [];
 
   return (
-    <div className="min-h-screen relative">
-      <div className="border-b border-border/60 px-4 md:px-10 py-4 flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-2xl md:text-3xl">Workspace</h1>
-          <p className="text-xs text-muted-foreground mt-1">Paste, choose a format, transform.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowHistory(true)}
-            className="rounded-md"
-          >
-            <History className="h-4 w-4 mr-1.5" /> Versions ({versions.length})
-          </Button>
-        </div>
-      </div>
-
-      <div className="mx-auto max-w-6xl px-4 md:px-10 py-6 md:py-8">
-        <div className="grid gap-5 lg:grid-cols-2">
-          {/* INPUT */}
-          <div className="rounded-md border border-border bg-card paper-lift glow-input p-5">
-            <div className="flex items-center justify-between mb-3">
-              <label className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                Your thoughts
-              </label>
-              <span className="text-[11px] text-muted-foreground">{input.length} chars</span>
-            </div>
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              rows={14}
-              autoFocus
-              placeholder={placeholder}
-              className="w-full resize-none bg-transparent outline-none text-[15px] leading-relaxed placeholder:text-muted-foreground/60"
-            />
-            <div className="mt-4 flex flex-wrap gap-1.5">
-              {FORMATS.map((f) => {
-                const Icon = f.icon;
-                const active = format === f.id;
-                return (
-                  <button
-                    key={f.id}
-                    onClick={() => setFormat(f.id)}
-                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs transition ${
-                      active
-                        ? "bg-foreground text-background"
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent border border-border"
-                    }`}
-                  >
-                    <Icon className="h-3.5 w-3.5" /> {f.label}
-                  </button>
-                );
-              })}
-            </div>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <select
-                value={tone}
-                onChange={(e) => setTone(e.target.value as Tone)}
-                className="text-xs bg-transparent border border-border rounded-md px-2 py-1 outline-none"
-              >
-                {TONES.map((t) => (
-                  <option key={t} value={t}>
-                    Tone: {t}
-                  </option>
-                ))}
-              </select>
-              <input
-                value={contextChip}
-                onChange={(e) => setContextChip(e.target.value)}
-                placeholder="+ Add deadline, collaborator, or context"
-                className="flex-1 min-w-[180px] text-xs bg-transparent border border-border rounded-md px-2 py-1 outline-none focus:border-ring placeholder:text-muted-foreground/60"
-              />
-              <Button onClick={run} disabled={loading} className="rounded-md">
-                <Wand2 className="h-4 w-4 mr-1.5" />
-                {loading ? "Transforming…" : "Transform"}
-              </Button>
-            </div>
-            <div className="mt-3 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-              <Sparkles className="h-3 w-3 text-violet" /> Powered by Claude 3.5 Sonnet via
-              OpenRouter
-            </div>
+    <div className="h-screen bg-[#0D0D12] text-[#F5F5F7] flex overflow-hidden">
+      {/* Thread Navigator */}
+      <aside className="w-80 border-r border-white/5 flex flex-col bg-[#0D0D12] z-20">
+        <div className="p-6 border-b border-white/5">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/30">Intelligence Rooms</h2>
+            <button className="h-6 w-6 rounded-lg bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all"><Plus className="h-3 w-3" /></button>
           </div>
-
-          {/* OUTPUT */}
-          <div className="rounded-md border border-border bg-card paper-lift p-5 min-h-[28rem] relative">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <label className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                  Output
-                </label>
-                {output && (
-                  <span className="chip-violet rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider">
-                    {FORMATS.find((f) => f.id === format)?.label}
-                  </span>
-                )}
-              </div>
-              <div className="flex gap-1">
-                <Button onClick={run} disabled={loading || !input} variant="ghost" size="sm">
-                  <RefreshCcw className="h-3.5 w-3.5 mr-1" /> Regenerate
-                </Button>
-                <Button onClick={copy} disabled={!output} variant="ghost" size="sm">
-                  <Copy className="h-3.5 w-3.5 mr-1" /> Copy
-                </Button>
-                <Button onClick={save} disabled={!output} variant="ghost" size="sm">
-                  <Save className="h-3.5 w-3.5 mr-1" /> Save
-                </Button>
-              </div>
-            </div>
-            {loading && !output && (
-              <div className="flex items-center gap-2 py-12 justify-center">
-                <span className="pulse-dot h-2 w-2 rounded-full bg-violet"></span>
-                <span className="pulse-dot h-2 w-2 rounded-full bg-violet"></span>
-                <span className="pulse-dot h-2 w-2 rounded-full bg-violet"></span>
-                <span className="ml-2 text-xs text-muted-foreground">Thinking quietly…</span>
-              </div>
-            )}
-            <pre className="whitespace-pre-wrap text-[14px] leading-relaxed font-sans text-foreground/90 min-h-[20rem] fade-in">
-              {output || (!loading && "Your clean output will appear here.")}
-            </pre>
+          <div className="relative group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/20 group-focus-within:text-[#7B5EA7] transition-colors" />
+            <Input className="h-9 pl-9 rounded-xl bg-white/[0.02] border-white/5 focus:border-[#7B5EA7]/50 text-xs" placeholder="Search threads..." />
           </div>
         </div>
-      </div>
 
-      {/* Version history slideout */}
-      {showHistory && (
-        <div
-          className="fixed inset-0 z-40 flex justify-end bg-foreground/30 backdrop-blur-sm fade-in"
-          onClick={() => setShowHistory(false)}
-        >
-          <aside
-            className="w-full max-w-md h-full bg-card border-l border-border slide-in-right overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="sticky top-0 bg-card border-b border-border px-5 py-4 flex items-center justify-between">
-              <h3 className="font-display text-xl">Version history</h3>
+        <ScrollArea className="flex-1 px-3 py-4">
+          <div className="space-y-1">
+            {rooms.map(room => (
               <button
-                onClick={() => setShowHistory(false)}
-                className="text-muted-foreground hover:text-foreground"
+                key={room.id}
+                onClick={() => setActiveRoom(room.id)}
+                className={`w-full flex items-center gap-3 p-4 rounded-2xl transition-all relative group ${activeRoom === room.id ? "bg-[#1A1A24] border border-white/10 shadow-xl shadow-[#7B5EA7]/5" : "hover:bg-white/[0.02]"}`}
               >
-                <X className="h-4 w-4" />
+                <div className={`h-10 w-10 rounded-xl flex items-center justify-center border transition-colors ${activeRoom === room.id ? "bg-[#7B5EA7]/10 border-[#7B5EA7]/30 text-[#7B5EA7]" : "bg-white/5 border-white/5 text-white/20"}`}>
+                   <Hash className="h-4 w-4" />
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <h3 className={`text-sm font-bold truncate ${activeRoom === room.id ? "text-white" : "text-white/40"}`}>{room.name}</h3>
+                  <p className="text-[10px] text-white/20 truncate">{room.lastMessage}</p>
+                </div>
+                {activeRoom === room.id && <div className="h-1.5 w-1.5 rounded-full bg-[#7B5EA7]" />}
               </button>
-            </div>
-            {versions.length === 0 ? (
-              <p className="p-6 text-sm text-muted-foreground">
-                No versions yet. Transform something to start a history.
-              </p>
-            ) : (
-              <ul className="p-4 space-y-3">
-                {versions.map((v, i) => (
-                  <li
-                    key={v.at}
-                    className="rounded-md border border-border/60 p-3 hover:bg-accent/40 transition cursor-pointer"
-                    onClick={() => {
-                      setOutput(v.output);
-                      setFormat(v.format);
-                      setTone(v.tone);
-                      setShowHistory(false);
-                    }}
-                  >
-                    <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground">
-                      <span>
-                        v{versions.length - i} · {v.format}
-                      </span>
-                      <span>{new Date(v.at).toLocaleTimeString()}</span>
-                    </div>
-                    <p className="mt-2 text-xs line-clamp-4 text-foreground/80 whitespace-pre-wrap">
-                      {v.output}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </aside>
-        </div>
-      )}
+            ))}
+          </div>
+        </ScrollArea>
 
-      <div className="px-4 md:px-10 pb-10">
-        <Link
-          to="/app"
-          className="inline-flex items-center text-xs text-muted-foreground hover:text-foreground"
-        >
-          <ChevronLeft className="h-3 w-3 mr-1" /> Back to dashboard
-        </Link>
-      </div>
+        <div className="p-6 border-t border-white/5">
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-[#7B5EA7]/10 to-transparent border border-[#7B5EA7]/10 relative overflow-hidden group">
+                <Brain className="absolute bottom-[-10px] right-[-10px] h-12 w-12 text-[#7B5EA7]/10 group-hover:scale-110 transition-transform" />
+                <h4 className="text-[10px] uppercase tracking-widest font-bold text-[#7B5EA7] mb-1">Neural Quota</h4>
+                <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden mb-2">
+                    <div className="h-full w-2/3 bg-gradient-to-r from-[#7B5EA7] to-[#4ECDC4]" />
+                </div>
+                <p className="text-[9px] text-white/30 font-medium">850 / 1200 messages</p>
+            </div>
+        </div>
+      </aside>
+
+      {/* Chat Workspace */}
+      <main className="flex-1 flex flex-col relative min-w-0">
+        {/* Ambient Effects */}
+        <div className="absolute inset-0 pointer-events-none opacity-20 z-0">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-[#7B5EA7] blur-[120px]" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-[#4ECDC4] blur-[120px]" />
+        </div>
+
+        <header className="px-8 py-5 border-b border-white/5 flex items-center justify-between bg-[#0D0D12]/80 backdrop-blur-xl z-10">
+          <div className="flex items-center gap-4">
+            <div className="h-10 w-10 rounded-xl bg-[#1A1A24] border border-white/10 flex items-center justify-center">
+               <Sparkles className="h-5 w-5 text-[#4ECDC4]" />
+            </div>
+            <div>
+              <h1 className="text-base font-bold tracking-tight">{rooms.find(r => r.id === activeRoom)?.name}</h1>
+              <div className="flex items-center gap-1.5">
+                <span className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[9px] uppercase tracking-widest text-[#4ECDC4] font-bold">Neural Sync Active</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+             <Button variant="ghost" size="icon" className="text-white/20 hover:text-white"><History className="h-4 w-4" /></Button>
+             <Button variant="ghost" size="icon" className="text-white/20 hover:text-white"><Share2 className="h-4 w-4" /></Button>
+             <Button variant="ghost" size="icon" className="text-white/20 hover:text-white"><MoreVertical className="h-4 w-4" /></Button>
+          </div>
+        </header>
+
+        <ScrollArea className="flex-1 z-1" viewportRef={scrollRef}>
+          <div className="max-w-4xl mx-auto px-8 py-10 space-y-10">
+            {currentMessages.map((m) => (
+              <div key={m.id} className={`flex gap-6 ${m.role === "user" ? "flex-row-reverse" : "flex-row"} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
+                <div className={`shrink-0 ${m.role === "user" ? "hidden" : "block"}`}>
+                    <div className={`h-10 w-10 rounded-2xl flex items-center justify-center border shadow-lg ${
+                        m.role === "assistant" ? "bg-gradient-to-br from-[#7B5EA7] to-[#4ECDC4] border-white/20 text-white" : "bg-white/5 border-white/5 text-white/20"
+                    }`}>
+                        {m.role === "assistant" ? <Brain className="h-5 w-5" /> : <MessageSquare className="h-5 w-5" />}
+                    </div>
+                </div>
+
+                <div className={`max-w-[80%] flex flex-col ${m.role === "user" ? "items-end" : "items-start"}`}>
+                    <div className="flex items-center gap-2 mb-2 px-1">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-white/30">
+                            {m.role === "assistant" ? "Quietly Intelligence" : (user?.displayName || "Thinker")}
+                        </span>
+                        <span className="text-[9px] font-bold text-white/10">{new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+
+                    <div className={`rounded-[28px] p-6 shadow-2xl ${
+                      m.role === "user"
+                        ? "bg-[#7B5EA7] text-white border border-white/10"
+                        : "bg-[#1A1A24]/60 border border-white/5 backdrop-blur-xl"
+                    }`}>
+                        {m.reasoning && (
+                            <details className="mb-6 group">
+                                <summary className="text-[9px] uppercase tracking-[0.2em] font-bold text-[#7B5EA7] cursor-pointer list-none flex items-center gap-2 opacity-60 hover:opacity-100 transition">
+                                    <ChevronRight className="h-3 w-3 group-open:rotate-90 transition-transform" />
+                                    Analytical Reasoning
+                                </summary>
+                                <div className="mt-4 pl-4 border-l-2 border-[#7B5EA7]/20 text-[11px] text-white/40 leading-relaxed italic">
+                                    {m.reasoning}
+                                </div>
+                            </details>
+                        )}
+
+                        <div className="prose prose-invert prose-sm max-w-none prose-p:leading-relaxed prose-pre:bg-[#0D0D12] prose-pre:border prose-pre:border-white/5">
+                            <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                                code({ node, inline, className, children, ...props }: any) {
+                                const match = /language-(\w+)/.exec(className || "");
+                                return !inline && match ? (
+                                    <div className="relative group">
+                                        <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Button variant="ghost" size="icon" className="h-7 w-7 text-white/40 hover:text-white" onClick={() => {
+                                                navigator.clipboard.writeText(String(children));
+                                                toast.success("Copied to clipboard");
+                                            }}>
+                                                <Copy className="h-3.5 w-3.5" />
+                                            </Button>
+                                        </div>
+                                        <SyntaxHighlighter
+                                            style={oneDark}
+                                            language={match[1]}
+                                            PreTag="div"
+                                            {...props}
+                                        >
+                                            {String(children).replace(/\n$/, "")}
+                                        </SyntaxHighlighter>
+                                    </div>
+                                ) : (
+                                    <code className={`${className} bg-white/5 px-1.5 py-0.5 rounded text-[#4ECDC4]`} {...props}>
+                                    {children}
+                                    </code>
+                                );
+                                }
+                            }}
+                            >
+                            {m.content}
+                            </ReactMarkdown>
+                        </div>
+
+                        {m.role === "assistant" && m.id !== "initial" && (
+                            <div className="mt-8 flex items-center gap-1 border-t border-white/5 pt-4">
+                                <ResponseAction icon={<ThumbsUp />} label="Rate" />
+                                <ResponseAction icon={<RotateCcw />} label="Regenerate" />
+                                <ResponseAction icon={<Copy />} label="Copy" />
+                                <ResponseAction icon={<Share2 />} label="Share to Room" />
+                            </div>
+                        )}
+                    </div>
+                </div>
+              </div>
+            ))}
+            {loading && (
+              <div className="flex items-center gap-3 text-[#7B5EA7] pl-16">
+                <div className="h-1.5 w-1.5 rounded-full bg-current animate-bounce" style={{ animationDelay: "0ms" }} />
+                <div className="h-1.5 w-1.5 rounded-full bg-current animate-bounce" style={{ animationDelay: "150ms" }} />
+                <div className="h-1.5 w-1.5 rounded-full bg-current animate-bounce" style={{ animationDelay: "300ms" }} />
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+
+        {/* Neural Input */}
+        <footer className="p-8 bg-gradient-to-t from-[#0D0D12] via-[#0D0D12] to-transparent z-10">
+            <div className="max-w-4xl mx-auto relative group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-[#7B5EA7] to-[#4ECDC4] rounded-[32px] opacity-10 group-focus-within:opacity-25 blur-xl transition duration-700" />
+                <div className="relative flex items-end gap-3 bg-[#1A1A24]/80 backdrop-blur-2xl rounded-[30px] border border-white/10 p-3 shadow-2xl">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={startListening}
+                        className={`rounded-2xl h-12 w-12 transition-all ${isListening ? "text-red-500 bg-red-500/10 animate-pulse" : "text-white/20 hover:text-white"}`}
+                    >
+                        <Mic className="h-5 w-5" />
+                    </Button>
+                    <textarea
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault();
+                                onSend();
+                            }
+                        }}
+                        rows={1}
+                        placeholder="Drop messy thoughts here..."
+                        className="flex-1 bg-transparent border-none focus:ring-0 text-white placeholder:text-white/20 py-3.5 text-base resize-none max-h-40"
+                        style={{ height: 'auto' }}
+                        onInput={(e: any) => {
+                            e.target.style.height = 'auto';
+                            e.target.style.height = e.target.scrollHeight + 'px';
+                        }}
+                    />
+                    <div className="flex items-center gap-2 pb-1">
+                        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl text-white/20 hover:text-white">
+                            <Plus className="h-5 w-5" />
+                        </Button>
+                        <Button
+                            onClick={onSend}
+                            disabled={loading || !input.trim()}
+                            className="rounded-2xl h-12 w-12 bg-[#7B5EA7] hover:bg-[#7B5EA7]/80 text-white shadow-xl shadow-[#7B5EA7]/20 group overflow-hidden"
+                        >
+                            {loading ? <Sparkles className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />}
+                        </Button>
+                    </div>
+                </div>
+                <div className="mt-4 flex items-center justify-between px-6">
+                    <div className="flex gap-4">
+                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">⌘ + Enter to synthesize</span>
+                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Shift + Enter for new line</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#4ECDC4] shadow-[0_0_8px_rgba(78,205,196,0.5)]" />
+                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#4ECDC4]">Neural Engine v2.0 Online</span>
+                    </div>
+                </div>
+            </div>
+        </footer>
+      </main>
     </div>
   );
+}
+
+function ResponseAction({ icon, label }: { icon: any, label: string }) {
+    return (
+        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-white/5 text-[9px] uppercase tracking-widest font-bold text-white/30 hover:text-white transition-all group">
+            <span className="group-hover:scale-110 transition-transform">{icon}</span>
+            <span className="hidden sm:inline">{label}</span>
+        </button>
+    );
 }

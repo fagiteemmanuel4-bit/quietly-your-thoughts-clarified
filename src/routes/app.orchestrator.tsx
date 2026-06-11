@@ -46,10 +46,7 @@ function Orchestrator() {
   const [currentStepIndex, setCurrentStepIndex] = useState<number | null>(null);
 
   const addStep = () => {
-    setSteps([
-      ...steps,
-      { id: crypto.randomUUID(), model: "gpt-4o-mini", prompt: "" },
-    ]);
+    setSteps([...steps, { id: crypto.randomUUID(), model: "gpt-4o-mini", prompt: "" }]);
   };
 
   const removeStep = (id: string) => {
