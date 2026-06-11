@@ -1,6 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+function appUrl() {
+  return process.env.VITE_APP_URL || "https://quietly.app";
+}
+
 const FROM = "Quietly <onboarding@resend.dev>";
 
 async function sendEmail(to: string, subject: string, html: string) {
@@ -45,21 +49,16 @@ export const sendWelcomeEmail = createServerFn({ method: "POST" })
     const body = `
       <p>Welcome, ${name}.</p>
       <p>Your quiet space is ready. Quietly is a calm place to drop messy thoughts and watch them become clean notes, summaries, to-dos, polished messages, emails, reports, and action plans.</p>
-      <p>Three things to try first:</p>
       <ul style="padding-left:18px;line-height:1.9;">
         <li>Paste a brain dump into the Workspace and pick a format.</li>
         <li>Use Quick Capture from anywhere to save a fleeting thought.</li>
         <li>Open your Dashboard for a calm daily brief.</li>
       </ul>
       <p style="margin-top:32px;">
-        <a href="https://quietly.app/app" style="background:#0E0E0E;color:#F9F7F4;padding:12px 22px;text-decoration:none;border-radius:6px;font-size:14px;">Open Quietly</a>
+        <a href="${appUrl()}/app" style="background:#0E0E0E;color:#F9F7F4;padding:12px 22px;text-decoration:none;border-radius:6px;font-size:14px;">Open Quietly</a>
       </p>
     `;
-    await sendEmail(
-      data.email,
-      "Welcome to Quietly — your quiet space is ready",
-      shell("Your thoughts deserve clarity.", body),
-    );
+    await sendEmail(data.email, "Welcome to Quietly — your quiet space is ready", shell("Your thoughts deserve clarity.", body));
     return { ok: true };
   });
 
@@ -69,22 +68,66 @@ export const sendInviteEmail = createServerFn({ method: "POST" })
       email: z.string().email(),
       inviterName: z.string().optional(),
       workspaceName: z.string().optional(),
+      inviteToken: z.string(),
     }),
   )
   .handler(async ({ data }) => {
     const who = data.inviterName || "Someone";
     const ws = data.workspaceName || "their team";
+    // Token-based link — survives domain changes
+    const acceptUrl = `${appUrl()}/invite/accept?token=${encodeURIComponent(data.inviteToken)}`;
     const body = `
       <p>${who} invited you to join ${ws} on Quietly.</p>
       <p>Quietly is a calm AI workspace for turning messy thoughts into clarity — together.</p>
       <p style="margin-top:32px;">
-        <a href="https://quietly.app/auth/signup?invite=${encodeURIComponent(data.email)}" style="background:#0E0E0E;color:#F9F7F4;padding:12px 22px;text-decoration:none;border-radius:6px;font-size:14px;">Accept invite</a>
+        <a href="${acceptUrl}" style="background:#0E0E0E;color:#F9F7F4;padding:12px 22px;text-decoration:none;border-radius:6px;font-size:14px;">Accept invite</a>
+      </p>
+      <p style="font-size:12px;color:#9a9a9a;margin-top:16px;">Link expires in 7 days.</p>
+    `;
+    await sendEmail(data.email, `${who} invited you to Quietly`, shell("You've been invited.", body));
+    return { ok: true };
+  });
+
+export const sendNotificationEmail = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      to: z.string().email(),
+      subject: z.string(),
+      title: z.string(),
+      body: z.string(),
+      actionUrl: z.string().optional(),
+      actionLabel: z.string().optional(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const actionBtn = data.actionUrl
+      ? `<p style="margin-top:24px;"><a href="${data.actionUrl}" style="background:#0E0E0E;color:#F9F7F4;padding:10px 20px;text-decoration:none;border-radius:6px;font-size:13px;">${data.actionLabel || "View"}</a></p>`
+      : "";
+    const html = shell(data.title, `<p>${data.body}</p>${actionBtn}`);
+    await sendEmail(data.to, data.subject, html);
+    return { ok: true };
+  });
+
+export const sendTeamMessageNotification = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      to: z.string().email(),
+      fromName: z.string(),
+      message: z.string(),
+      replyToken: z.string().optional(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const replyUrl = data.replyToken
+      ? `${appUrl()}/app/team?reply=${data.replyToken}`
+      : `${appUrl()}/app/team`;
+    const body = `
+      <p><strong>${data.fromName}</strong> sent a message in your team chat:</p>
+      <blockquote style="border-left:3px solid #E5E1DA;margin:16px 0;padding:12px 16px;color:#555;font-style:italic;">"${data.message.slice(0, 300)}${data.message.length > 300 ? "…" : ""}"</blockquote>
+      <p style="margin-top:24px;">
+        <a href="${replyUrl}" style="background:#0E0E0E;color:#F9F7F4;padding:10px 20px;text-decoration:none;border-radius:6px;font-size:13px;">Reply in Quietly</a>
       </p>
     `;
-    await sendEmail(
-      data.email,
-      `${who} invited you to Quietly`,
-      shell("You've been invited.", body),
-    );
+    await sendEmail(data.to, `${data.fromName} sent a message on Quietly`, shell("New team message", body));
     return { ok: true };
   });

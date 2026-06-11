@@ -1,329 +1,355 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { transformText, type Format } from "@/lib/ai/transform.functions";
+import { chatAgent } from "@/lib/ai/transform.functions";
 import { useAuth } from "@/lib/auth-context";
 import { db } from "@/lib/firebase";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import {
-  StickyNote,
-  FileText,
-  ListChecks,
-  MessageSquare,
-  Mail,
-  FileBarChart,
-  Target,
-  Wand2,
-  Copy,
-  RefreshCcw,
-  Save,
-  Sparkles,
-  History,
-  X,
-  ChevronLeft,
+  Mic, MicOff, Send, Copy, RefreshCcw, ThumbsUp, ThumbsDown,
+  Sparkles, ChevronDown, Bot, User, Plus, Loader2, Share2,
 } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/app/workspace")({
-  component: Workspace,
-});
+export const Route = createFileRoute("/app/workspace")({ component: Workspace });
 
-const FORMATS: { id: Format; label: string; icon: React.ComponentType<{ className?: string }> }[] =
-  [
-    { id: "notes", label: "Notes", icon: StickyNote },
-    { id: "summary", label: "Summary", icon: FileText },
-    { id: "todo", label: "To-do", icon: ListChecks },
-    { id: "message", label: "Message", icon: MessageSquare },
-    { id: "email", label: "Email", icon: Mail },
-    { id: "report", label: "Report", icon: FileBarChart },
-    { id: "action_plan", label: "Action plan", icon: Target },
-  ];
+type Msg = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  rating?: "up" | "down";
+  thinking?: string;
+};
 
-const TONES = ["neutral", "warm", "concise", "formal", "casual"] as const;
-type Tone = (typeof TONES)[number];
+function parseAction(content: string) {
+  const match = content.match(/```action\s*([\s\S]*?)```/);
+  if (!match) return null;
+  try { return JSON.parse(match[1].trim()); } catch { return null; }
+}
 
-const PLACEHOLDERS = [
-  "What's on your mind?",
-  "Drop a meeting note…",
-  "Describe your idea…",
-  "Brain dump in progress…",
-  "Paste anything. We'll sort it out.",
-];
+function cleanContent(content: string) {
+  return content.replace(/```action[\s\S]*?```/g, "").trim();
+}
 
-type Version = { output: string; format: Format; tone: Tone; at: number };
+// Simple markdown renderer
+function Markdown({ text }: { text: string }) {
+  const html = text
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/^### (.+)$/gm, "<h3 class='text-base font-semibold mt-4 mb-1'>$1</h3>")
+    .replace(/^## (.+)$/gm, "<h2 class='text-lg font-semibold mt-5 mb-2'>$1</h2>")
+    .replace(/^# (.+)$/gm, "<h1 class='text-xl font-bold mt-6 mb-2'>$1</h1>")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>")
+    .replace(/`([^`]+)`/g, "<code class='bg-muted px-1 py-0.5 rounded text-sm font-mono'>$1</code>")
+    .replace(/^- \[ \] (.+)$/gm, "<div class='flex gap-2 items-start my-1'><span class='mt-0.5 h-4 w-4 rounded border border-border shrink-0'></span><span>$1</span></div>")
+    .replace(/^- (.+)$/gm, "<div class='flex gap-2 my-1'><span class='mt-2 h-1.5 w-1.5 rounded-full bg-muted-foreground shrink-0'></span><span>$1</span></div>")
+    .replace(/\n\n/g, "</p><p class='mb-2'>")
+    .replace(/\n/g, "<br/>");
+  return (
+    <div
+      className="prose-quietly text-sm leading-relaxed"
+      dangerouslySetInnerHTML={{ __html: `<p class='mb-2'>${html}</p>` }}
+    />
+  );
+}
 
-function Workspace() {
-  const transform = useServerFn(transformText);
+function ThinkingDots() {
+  return (
+    <div className="flex gap-1 items-center py-1">
+      {[0, 1, 2].map(i => (
+        <span key={i} className="thinking-dot h-2 w-2 rounded-full bg-muted-foreground/40"
+          style={{ animationDelay: `${i * 0.18}s` }} />
+      ))}
+    </div>
+  );
+}
+
+export default function Workspace() {
+  const agent = useServerFn(chatAgent);
   const { user } = useAuth();
+  const [msgs, setMsgs] = useState<Msg[]>([
+    {
+      id: "welcome",
+      role: "assistant",
+      content: `Hey${user?.displayName ? ` ${user.displayName.split(" ")[0]}` : ""}! I'm your Quietly AI. I can help you clarify thoughts, draft emails, create tasks, plan projects, and more.\n\nTry typing something like:\n- *"Turn this meeting note into action items: …"*\n- *"Create a task: review the proposal"*\n- *"Draft a follow-up email to the client"*`,
+    },
+  ]);
   const [input, setInput] = useState("");
-  const [format, setFormat] = useState<Format>("notes");
-  const [tone, setTone] = useState<Tone>("neutral");
-  const [contextChip, setContextChip] = useState("");
-  const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [versions, setVersions] = useState<Version[]>([]);
-  const [showHistory, setShowHistory] = useState(false);
-  const [placeholder, setPlaceholder] = useState(PLACEHOLDERS[0]);
-  const animRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [listening, setListening] = useState(false);
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
-  useEffect(() => {
-    let i = 0;
-    const id = setInterval(() => {
-      i = (i + 1) % PLACEHOLDERS.length;
-      setPlaceholder(PLACEHOLDERS[i]);
-    }, 4200);
-    return () => clearInterval(id);
+  const scrollToBottom = useCallback(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  useEffect(
-    () => () => {
-      if (animRef.current) clearInterval(animRef.current);
-    },
-    [],
-  );
+  useEffect(() => { scrollToBottom(); }, [msgs, scrollToBottom]);
 
-  const animateOutput = (full: string) => {
-    if (animRef.current) clearInterval(animRef.current);
-    setOutput("");
-    let i = 0;
-    animRef.current = setInterval(() => {
-      i += Math.max(2, Math.floor(full.length / 100));
-      setOutput(full.slice(0, i));
-      if (i >= full.length) {
-        setOutput(full);
-        if (animRef.current) clearInterval(animRef.current);
-      }
-    }, 14);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      setShowScrollBtn(el.scrollHeight - el.scrollTop - el.clientHeight > 200);
+    };
+    el.addEventListener("scroll", onScroll);
+    return () => el.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const toggleVoice = () => {
+    const SR = window.SpeechRecognition || (window as unknown as { webkitSpeechRecognition: typeof SpeechRecognition }).webkitSpeechRecognition;
+    if (!SR) return toast.error("Voice input not supported in this browser.");
+    if (listening) {
+      recognitionRef.current?.stop();
+      setListening(false);
+      return;
+    }
+    const r = new SR();
+    r.continuous = false;
+    r.interimResults = false;
+    r.lang = "en-US";
+    r.onresult = (e) => { setInput((prev) => prev + " " + e.results[0][0].transcript); };
+    r.onend = () => setListening(false);
+    r.onerror = () => { setListening(false); toast.error("Voice recognition stopped."); };
+    r.start();
+    recognitionRef.current = r;
+    setListening(true);
   };
 
-  const run = async () => {
-    if (!input.trim()) return toast.error("Add some text first.");
+  const send = async (text?: string) => {
+    const content = (text ?? input).trim();
+    if (!content || loading) return;
+    setInput("");
+    const userMsg: Msg = { id: Date.now().toString(), role: "user", content };
+    setMsgs((p) => [...p, userMsg]);
     setLoading(true);
-    setOutput("");
+
+    const history = [...msgs.filter(m => m.id !== "welcome"), userMsg].map(m => ({
+      role: m.role,
+      content: m.content,
+    }));
+
     try {
-      const res = await transform({
-        data: { input, format, tone, context: contextChip || undefined },
-      });
-      animateOutput(res.output);
-      setVersions((prev) =>
-        [{ output: res.output, format, tone, at: Date.now() }, ...prev].slice(0, 12),
-      );
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Something went wrong");
+      const res = await agent({ data: { messages: history, userName: user?.displayName || undefined } });
+      const action = parseAction(res.output);
+      const display = cleanContent(res.output);
+
+      const assistantMsg: Msg = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: display,
+      };
+      setMsgs((p) => [...p, assistantMsg]);
+
+      // Handle agentic actions
+      if (action && user) {
+        if (action.create_task) {
+          await addDoc(collection(db, "users", user.uid, "tasks"), {
+            title: action.create_task.title,
+            priority: action.create_task.priority || "later",
+            done: false,
+            createdAt: serverTimestamp(),
+          });
+          toast.success(`Task created: "${action.create_task.title}"`);
+        }
+        if (action.create_event) {
+          await addDoc(collection(db, "users", user.uid, "events"), {
+            title: action.create_event.title,
+            date: action.create_event.date,
+            time: action.create_event.time || "",
+            createdAt: serverTimestamp(),
+          });
+          toast.success(`Event added: "${action.create_event.title}"`);
+        }
+      }
+
+      // Save to thoughts archive
+      if (user && display.length > 20) {
+        addDoc(collection(db, "users", user.uid, "thoughts"), {
+          input: content,
+          output: display,
+          type: "workspace_chat",
+          format: "chat",
+          createdAt: serverTimestamp(),
+        }).catch(() => {});
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "AI error");
     } finally {
       setLoading(false);
     }
   };
 
-  const copy = async () => {
-    if (!output) return;
-    await navigator.clipboard.writeText(output);
-    toast.success("Copied");
+  const rate = (id: string, rating: "up" | "down") => {
+    setMsgs((p) => p.map((m) => (m.id === id ? { ...m, rating } : m)));
+    toast.success(rating === "up" ? "Thanks for the feedback!" : "Got it, I'll improve.");
   };
 
-  const save = async () => {
-    if (!output || !user) return;
-    try {
-      await addDoc(collection(db, "users", user.uid, "thoughts"), {
-        input,
-        output,
-        format,
-        tone,
-        type: "transform",
-        createdAt: serverTimestamp(),
-      });
-      toast.success("Saved to thoughts");
-    } catch {
-      toast.error("Could not save. Check Firestore rules.");
-    }
+  const copyMsg = (content: string) => {
+    navigator.clipboard.writeText(content);
+    toast.success("Copied to clipboard.");
   };
+
+  const regenerate = async (id: string) => {
+    const idx = msgs.findIndex((m) => m.id === id);
+    if (idx < 1) return;
+    const lastUser = msgs.slice(0, idx).reverse().find((m) => m.role === "user");
+    if (!lastUser) return;
+    setMsgs((p) => p.filter((m) => m.id !== id));
+    await send(lastUser.content);
+  };
+
+  const SUGGESTIONS = [
+    "Summarise my last meeting notes",
+    "Create a task to review the project",
+    "Draft a professional follow-up email",
+    "Help me plan my week",
+  ];
 
   return (
-    <div className="min-h-screen relative">
-      <div className="border-b border-border/60 px-4 md:px-10 py-4 flex items-center justify-between">
+    <div className="flex flex-col h-[calc(100vh-3.5rem)] md:h-screen bg-background">
+      {/* Header */}
+      <div className="border-b border-border/60 px-4 md:px-8 py-4 flex items-center gap-3 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
+        <div className="h-8 w-8 rounded-full bg-violet-soft flex items-center justify-center">
+          <Sparkles className="h-4 w-4 text-violet" />
+        </div>
         <div>
-          <h1 className="font-display text-2xl md:text-3xl">Workspace</h1>
-          <p className="text-xs text-muted-foreground mt-1">Paste, choose a format, transform.</p>
+          <h1 className="font-medium text-sm">AI Workspace</h1>
+          <p className="text-[11px] text-muted-foreground">Powered by Llama 3.1 · free</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowHistory(true)}
-            className="rounded-md"
-          >
-            <History className="h-4 w-4 mr-1.5" /> Versions ({versions.length})
-          </Button>
-        </div>
+        <button
+          onClick={() => setMsgs([{
+            id: "welcome",
+            role: "assistant",
+            content: `Fresh start! What's on your mind?`,
+          }])}
+          className="ml-auto inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition"
+        >
+          <Plus className="h-3.5 w-3.5" /> New chat
+        </button>
       </div>
 
-      <div className="mx-auto max-w-6xl px-4 md:px-10 py-6 md:py-8">
-        <div className="grid gap-5 lg:grid-cols-2">
-          {/* INPUT */}
-          <div className="rounded-md border border-border bg-card paper-lift glow-input p-5">
-            <div className="flex items-center justify-between mb-3">
-              <label className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                Your thoughts
-              </label>
-              <span className="text-[11px] text-muted-foreground">{input.length} chars</span>
+      {/* Messages */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-6 relative">
+        {msgs.map((m) => (
+          <div key={m.id} className={`flex gap-3 ${m.role === "user" ? "flex-row-reverse" : ""} workspace-msg-in`}>
+            {/* Avatar */}
+            <div className={`h-8 w-8 rounded-full shrink-0 flex items-center justify-center text-xs font-medium ${
+              m.role === "assistant" ? "bg-violet-soft text-violet" : "bg-foreground text-background"
+            }`}>
+              {m.role === "assistant" ? <Bot className="h-4 w-4" /> : <User className="h-4 w-4" />}
             </div>
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              rows={14}
-              autoFocus
-              placeholder={placeholder}
-              className="w-full resize-none bg-transparent outline-none text-[15px] leading-relaxed placeholder:text-muted-foreground/60"
-            />
-            <div className="mt-4 flex flex-wrap gap-1.5">
-              {FORMATS.map((f) => {
-                const Icon = f.icon;
-                const active = format === f.id;
-                return (
-                  <button
-                    key={f.id}
-                    onClick={() => setFormat(f.id)}
-                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs transition ${
-                      active
-                        ? "bg-foreground text-background"
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent border border-border"
-                    }`}
-                  >
-                    <Icon className="h-3.5 w-3.5" /> {f.label}
-                  </button>
-                );
-              })}
-            </div>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <select
-                value={tone}
-                onChange={(e) => setTone(e.target.value as Tone)}
-                className="text-xs bg-transparent border border-border rounded-md px-2 py-1 outline-none"
-              >
-                {TONES.map((t) => (
-                  <option key={t} value={t}>
-                    Tone: {t}
-                  </option>
-                ))}
-              </select>
-              <input
-                value={contextChip}
-                onChange={(e) => setContextChip(e.target.value)}
-                placeholder="+ Add deadline, collaborator, or context"
-                className="flex-1 min-w-[180px] text-xs bg-transparent border border-border rounded-md px-2 py-1 outline-none focus:border-ring placeholder:text-muted-foreground/60"
-              />
-              <Button onClick={run} disabled={loading} className="rounded-md">
-                <Wand2 className="h-4 w-4 mr-1.5" />
-                {loading ? "Transforming…" : "Transform"}
-              </Button>
-            </div>
-            <div className="mt-3 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-              <Sparkles className="h-3 w-3 text-violet" /> Powered by Claude 3.5 Sonnet via
-              OpenRouter
-            </div>
-          </div>
 
-          {/* OUTPUT */}
-          <div className="rounded-md border border-border bg-card paper-lift p-5 min-h-[28rem] relative">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <label className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                  Output
-                </label>
-                {output && (
-                  <span className="chip-violet rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider">
-                    {FORMATS.find((f) => f.id === format)?.label}
-                  </span>
+            {/* Bubble */}
+            <div className={`group max-w-[85%] md:max-w-[70%] ${m.role === "user" ? "items-end" : "items-start"} flex flex-col gap-1`}>
+              <div className={`rounded-2xl px-4 py-3 ${
+                m.role === "user"
+                  ? "bg-foreground text-background rounded-tr-sm"
+                  : "bg-card border border-border/60 rounded-tl-sm"
+              }`}>
+                {m.role === "assistant" ? (
+                  <Markdown text={m.content} />
+                ) : (
+                  <p className="text-sm whitespace-pre-wrap">{m.content}</p>
                 )}
               </div>
-              <div className="flex gap-1">
-                <Button onClick={run} disabled={loading || !input} variant="ghost" size="sm">
-                  <RefreshCcw className="h-3.5 w-3.5 mr-1" /> Regenerate
-                </Button>
-                <Button onClick={copy} disabled={!output} variant="ghost" size="sm">
-                  <Copy className="h-3.5 w-3.5 mr-1" /> Copy
-                </Button>
-                <Button onClick={save} disabled={!output} variant="ghost" size="sm">
-                  <Save className="h-3.5 w-3.5 mr-1" /> Save
-                </Button>
-              </div>
+
+              {/* Actions row for assistant */}
+              {m.role === "assistant" && m.id !== "welcome" && (
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => copyMsg(m.content)} className="action-btn" title="Copy">
+                    <Copy className="h-3 w-3" />
+                  </button>
+                  <button onClick={() => regenerate(m.id)} className="action-btn" title="Regenerate">
+                    <RefreshCcw className="h-3 w-3" />
+                  </button>
+                  <button onClick={() => rate(m.id, "up")}
+                    className={`action-btn ${m.rating === "up" ? "text-sage" : ""}`} title="Good response">
+                    <ThumbsUp className="h-3 w-3" />
+                  </button>
+                  <button onClick={() => rate(m.id, "down")}
+                    className={`action-btn ${m.rating === "down" ? "text-destructive" : ""}`} title="Bad response">
+                    <ThumbsDown className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
             </div>
-            {loading && !output && (
-              <div className="flex items-center gap-2 py-12 justify-center">
-                <span className="pulse-dot h-2 w-2 rounded-full bg-violet"></span>
-                <span className="pulse-dot h-2 w-2 rounded-full bg-violet"></span>
-                <span className="pulse-dot h-2 w-2 rounded-full bg-violet"></span>
-                <span className="ml-2 text-xs text-muted-foreground">Thinking quietly…</span>
-              </div>
-            )}
-            <pre className="whitespace-pre-wrap text-[14px] leading-relaxed font-sans text-foreground/90 min-h-[20rem] fade-in">
-              {output || (!loading && "Your clean output will appear here.")}
-            </pre>
           </div>
-        </div>
+        ))}
+
+        {/* Loading indicator */}
+        {loading && (
+          <div className="flex gap-3 workspace-msg-in">
+            <div className="h-8 w-8 rounded-full bg-violet-soft flex items-center justify-center">
+              <Bot className="h-4 w-4 text-violet" />
+            </div>
+            <div className="bg-card border border-border/60 rounded-2xl rounded-tl-sm px-4 py-3">
+              <ThinkingDots />
+            </div>
+          </div>
+        )}
+        <div ref={bottomRef} />
       </div>
 
-      {/* Version history slideout */}
-      {showHistory && (
-        <div
-          className="fixed inset-0 z-40 flex justify-end bg-foreground/30 backdrop-blur-sm fade-in"
-          onClick={() => setShowHistory(false)}
-        >
-          <aside
-            className="w-full max-w-md h-full bg-card border-l border-border slide-in-right overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="sticky top-0 bg-card border-b border-border px-5 py-4 flex items-center justify-between">
-              <h3 className="font-display text-xl">Version history</h3>
-              <button
-                onClick={() => setShowHistory(false)}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            {versions.length === 0 ? (
-              <p className="p-6 text-sm text-muted-foreground">
-                No versions yet. Transform something to start a history.
-              </p>
-            ) : (
-              <ul className="p-4 space-y-3">
-                {versions.map((v, i) => (
-                  <li
-                    key={v.at}
-                    className="rounded-md border border-border/60 p-3 hover:bg-accent/40 transition cursor-pointer"
-                    onClick={() => {
-                      setOutput(v.output);
-                      setFormat(v.format);
-                      setTone(v.tone);
-                      setShowHistory(false);
-                    }}
-                  >
-                    <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground">
-                      <span>
-                        v{versions.length - i} · {v.format}
-                      </span>
-                      <span>{new Date(v.at).toLocaleTimeString()}</span>
-                    </div>
-                    <p className="mt-2 text-xs line-clamp-4 text-foreground/80 whitespace-pre-wrap">
-                      {v.output}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </aside>
+      {/* Scroll to bottom */}
+      {showScrollBtn && (
+        <button onClick={scrollToBottom}
+          className="fixed bottom-32 md:bottom-24 right-6 h-8 w-8 rounded-full bg-card border border-border shadow-lift flex items-center justify-center z-20 transition hover:scale-105">
+          <ChevronDown className="h-4 w-4" />
+        </button>
+      )}
+
+      {/* Suggestions */}
+      {msgs.length <= 1 && (
+        <div className="px-4 md:px-8 pb-3 flex flex-wrap gap-2">
+          {SUGGESTIONS.map((s) => (
+            <button key={s} onClick={() => send(s)}
+              className="text-xs px-3 py-1.5 rounded-full border border-border/60 text-muted-foreground hover:border-foreground/40 hover:text-foreground transition">
+              {s}
+            </button>
+          ))}
         </div>
       )}
 
-      <div className="px-4 md:px-10 pb-10">
-        <Link
-          to="/app"
-          className="inline-flex items-center text-xs text-muted-foreground hover:text-foreground"
-        >
-          <ChevronLeft className="h-3 w-3 mr-1" /> Back to dashboard
-        </Link>
+      {/* Input */}
+      <div className="border-t border-border/60 px-4 md:px-8 py-4 bg-background/80 backdrop-blur-sm">
+        <div className="flex gap-2 items-end max-w-4xl mx-auto">
+          <div className="flex-1 relative">
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+              }}
+              placeholder={listening ? "🎙 Listening…" : "Ask anything or drop a thought…"}
+              rows={1}
+              className="w-full resize-none rounded-2xl border border-border/60 bg-card px-4 py-3 pr-12 text-sm outline-none focus:border-foreground/40 transition max-h-40 overflow-y-auto"
+              style={{ minHeight: "48px" }}
+              onInput={(e) => {
+                const t = e.target as HTMLTextAreaElement;
+                t.style.height = "auto";
+                t.style.height = Math.min(t.scrollHeight, 160) + "px";
+              }}
+            />
+          </div>
+          <button onClick={toggleVoice}
+            className={`h-12 w-12 rounded-full border flex items-center justify-center shrink-0 transition ${
+              listening ? "bg-destructive/10 border-destructive text-destructive animate-pulse" : "border-border/60 text-muted-foreground hover:text-foreground hover:border-foreground/40"
+            }`}
+            title={listening ? "Stop" : "Voice input"}>
+            {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+          </button>
+          <Button onClick={() => send()} disabled={!input.trim() || loading}
+            className="h-12 w-12 rounded-full p-0 shrink-0">
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          </Button>
+        </div>
+        <p className="text-center text-[10px] text-muted-foreground mt-2">
+          Press Enter to send · Shift+Enter for new line · or use voice
+        </p>
       </div>
     </div>
   );

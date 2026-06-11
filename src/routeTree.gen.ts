@@ -27,6 +27,8 @@ import { Route as AppSpacesRouteImport } from './routes/app.spaces'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppPlannerRouteImport } from './routes/app.planner'
 import { Route as AppCalendarRouteImport } from './routes/app.calendar'
+import { Route as AppHelpRouteImport } from './routes/app.help'
+import { Route as InviteAcceptRouteImport } from './routes/invite.accept'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -113,6 +115,18 @@ const AppPlannerRoute = AppPlannerRouteImport.update({
   path: '/planner',
   getParentRoute: () => AppRoute,
 } as any)
+const AppHelpRoute = AppHelpRouteImport.update({
+  id: '/app/help',
+  path: '/help',
+  getParentRoute: () => AppRoute,
+} as any)
+
+const InviteAcceptRoute = InviteAcceptRouteImport.update({
+  id: '/invite/accept',
+  path: '/invite/accept',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
 const AppCalendarRoute = AppCalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
@@ -375,6 +389,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPlannerRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/help': {
+      id: '/app/help'
+      path: '/help'
+      fullPath: '/app/help'
+      preLoaderRoute: typeof AppHelpRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/calendar': {
       id: '/app/calendar'
       path: '/calendar'
@@ -393,6 +414,7 @@ interface AppRouteChildren {
   AppTeamRoute: typeof AppTeamRoute
   AppThoughtsRoute: typeof AppThoughtsRoute
   AppWorkspaceRoute: typeof AppWorkspaceRoute
+  AppHelpRoute: typeof AppHelpRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
@@ -404,6 +426,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppTeamRoute: AppTeamRoute,
   AppThoughtsRoute: AppThoughtsRoute,
   AppWorkspaceRoute: AppWorkspaceRoute,
+  AppHelpRoute: AppHelpRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
@@ -420,6 +443,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthSignupRoute: AuthSignupRoute,
+  InviteAcceptRoute: InviteAcceptRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,80 +1,57 @@
-import { useState, type ReactNode } from "react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
 
-type Props = {
-  trigger: (open: () => void) => ReactNode;
+interface Props {
   title: string;
-  description?: ReactNode;
+  description: string;
   confirmLabel?: string;
   cancelLabel?: string;
-  destructive?: boolean;
-  onConfirm: () => Promise<void> | void;
-};
+  variant?: "default" | "destructive";
+  onConfirm: () => void | Promise<void>;
+  trigger: (open: () => void) => React.ReactNode;
+}
 
 export function ConfirmDialog({
-  trigger,
-  title,
-  description,
-  confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
-  destructive,
-  onConfirm,
+  title, description, confirmLabel = "Confirm", cancelLabel = "Cancel",
+  variant = "default", onConfirm, trigger,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handle = async () => {
+  const handleConfirm = async () => {
     setLoading(true);
-    try {
-      await onConfirm();
-      setOpen(false);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
+    try { await onConfirm(); } finally { setLoading(false); setOpen(false); }
   };
 
   return (
     <>
       {trigger(() => setOpen(true))}
-      <AlertDialog open={open} onOpenChange={(v) => !loading && setOpen(v)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{title}</AlertDialogTitle>
-            {description && <AlertDialogDescription>{description}</AlertDialogDescription>}
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={loading}>{cancelLabel}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                handle();
-              }}
-              disabled={loading}
-              className={
-                destructive
-                  ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  : ""
-              }
-            >
-              {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {confirmLabel}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {open && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setOpen(false)} />
+          <div className="relative bg-card border border-border rounded-2xl shadow-2xl p-6 w-full max-w-sm fade-up">
+            <button onClick={() => setOpen(false)} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
+              <X className="h-4 w-4" />
+            </button>
+            <h3 className="font-display text-xl mb-2">{title}</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed mb-6">{description}</p>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setOpen(false)} className="flex-1 rounded-full" disabled={loading}>
+                {cancelLabel}
+              </Button>
+              <Button
+                variant={variant === "destructive" ? "destructive" : "default"}
+                onClick={handleConfirm}
+                className="flex-1 rounded-full"
+                disabled={loading}
+              >
+                {loading ? "Please wait…" : confirmLabel}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -21,6 +21,7 @@ import {
   ChevronsRight,
   Plus,
   Timer,
+  HelpCircle,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -71,6 +72,7 @@ function AppLayout() {
     { to: "/app/team", label: "Team", icon: Users },
     { to: "/app/spaces", label: "Shared Spaces", icon: Share2 },
     { to: "/app/settings", label: "Settings", icon: Settings },
+    { to: "/app/help", label: "Help", icon: HelpCircle },
     ...(isAdmin ? [{ to: "/admin", label: "Admin", icon: Shield }] : []),
   ];
 
@@ -281,3 +283,4 @@ function AppLayout() {
     </div>
   );
 }
+
