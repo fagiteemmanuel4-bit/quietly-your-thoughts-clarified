@@ -4,191 +4,215 @@ import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/lib/auth-context";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
-import { dailyBrief } from "@/lib/ai/transform.functions";
+import { agentChat } from "@/lib/ai/agent.functions";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Pencil, ListChecks, Calendar, Sparkles, MessageSquare } from "lucide-react";
+import {
+  ArrowRight,
+  Sparkles,
+  MessageSquare,
+  Target,
+  Zap,
+  Brain,
+  History,
+  Settings,
+  Plus,
+} from "lucide-react";
 
 export const Route = createFileRoute("/app/")({
-  component: Dashboard,
+  component: AdvancedDashboard,
 });
 
-function greeting() {
-  const h = new Date().getHours();
-  if (h < 5) return "Still up";
-  if (h < 12) return "Good morning";
-  if (h < 18) return "Good afternoon";
-  return "Good evening";
-}
-
-type Thought = {
-  id: string;
-  input?: string;
-  output?: string;
-  text?: string;
-  format?: string;
-  type?: string;
-};
-
-function Dashboard() {
+function AdvancedDashboard() {
   const { user } = useAuth();
-  const brief = useServerFn(dailyBrief);
-  const [thoughts, setThoughts] = useState<Thought[]>([]);
-  const [briefText, setBriefText] = useState("");
-  const [briefLoading, setBriefLoading] = useState(false);
+  const chatFn = useServerFn(agentChat);
+  const [thoughts, setThoughts] = useState<any[]>([]);
+  const [brief, setBrief] = useState<string>("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!user) return;
-    (async () => {
-      try {
-        const snap = await getDocs(
-          query(
-            collection(db, "users", user.uid, "thoughts"),
-            orderBy("createdAt", "desc"),
-            limit(8),
-          ),
-        );
-        setThoughts(snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Thought, "id">) })));
-      } catch {
-        setThoughts([]);
-      }
-    })();
+    const fetchActivity = async () => {
+      const snap = await getDocs(
+        query(
+          collection(db, "users", user.uid, "thoughts"),
+          orderBy("createdAt", "desc"),
+          limit(5),
+        ),
+      );
+      setThoughts(snap.docs.map((d) => d.data()));
+    };
+    fetchActivity();
   }, [user]);
 
-  const generateBrief = async () => {
-    if (!user) return;
-    setBriefLoading(true);
+  const generateSummary = async () => {
+    if (!user || loading) return;
+    setLoading(true);
     try {
-      const recent = thoughts
-        .slice(0, 5)
-        .map((t) => t.output || t.text || t.input || "")
-        .filter(Boolean);
-      const res = await brief({
-        data: { name: user.displayName?.split(" ")[0] || undefined, thoughts: recent },
+      const res = await chatFn({
+        data: {
+          messages: [
+            {
+              role: "user",
+              content:
+                "Give me a concise, data-driven summary of what's happened in my workspace lately. Highlight new tasks and pending reviews.",
+            },
+          ],
+          userId: user.uid,
+          userName: user.displayName || undefined,
+        },
       });
-      setBriefText(res.brief);
+      setBrief(res.text);
     } catch (e) {
-      setBriefText(e instanceof Error ? e.message : "Could not generate brief.");
+      setBrief("System synthesis failed.");
     } finally {
-      setBriefLoading(false);
+      setLoading(false);
     }
   };
 
-  const firstName = user?.displayName?.split(" ")[0] || "there";
+  const firstName = user?.displayName?.split(" ")[0] || "Thinker";
 
   return (
-    <div className="min-h-screen">
-      <div className="border-b border-border/60 px-4 md:px-10 py-5">
-        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-          {new Date().toLocaleDateString(undefined, {
-            weekday: "long",
-            month: "long",
-            day: "numeric",
-          })}
-        </p>
-        <h1 className="font-display text-3xl md:text-4xl mt-1">
-          {greeting()}, {firstName}.
-        </h1>
-      </div>
+    <div className="min-h-screen bg-[#0D0D12] text-[#F5F5F7] pb-24">
+      {/* Hero Section */}
+      <div className="px-6 md:px-12 py-12 md:py-20 relative overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-gradient-to-b from-[#7B5EA7]/10 via-transparent to-transparent pointer-events-none" />
 
-      <div className="mx-auto max-w-6xl px-4 md:px-10 py-6 md:py-8 grid gap-6 lg:grid-cols-3">
-        {/* Daily Brief */}
-        <div className="lg:col-span-2 rounded-md border border-border bg-card paper-lift p-6 relative grain overflow-hidden">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-violet" />
-              <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                Daily brief
-              </span>
-            </div>
-            <Button size="sm" variant="ghost" onClick={generateBrief} disabled={briefLoading}>
-              {briefLoading ? "Composing…" : briefText ? "Refresh" : "Generate"}
-            </Button>
+        <div className="max-w-6xl mx-auto relative z-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1A1A24] border border-[#7B5EA7]/20 mb-6 animate-in fade-in slide-in-from-top-4 duration-700">
+            <div className="h-1.5 w-1.5 rounded-full bg-[#7B5EA7]" />
+            <span className="text-[10px] uppercase tracking-widest font-bold text-[#7B5EA7]">
+              Neural Pulse Active
+            </span>
           </div>
-          {briefText ? (
-            <p className="font-display text-xl md:text-2xl leading-relaxed text-foreground/90 fade-in">
-              {briefText}
-            </p>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Your quiet space is calm today. Generate a brief to see what matters now — pulled from
-              your recent thoughts.
-            </p>
-          )}
-          <div className="mt-6 flex flex-wrap gap-2">
-            <Button asChild size="sm">
-              <Link to="/app/workspace">
-                <Pencil className="h-3.5 w-3.5 mr-1.5" /> Open workspace
-              </Link>
-            </Button>
-            <Button asChild size="sm" variant="outline">
-              <Link to="/app/planner">
-                <ListChecks className="h-3.5 w-3.5 mr-1.5" /> Planner
-              </Link>
-            </Button>
-            <Button asChild size="sm" variant="outline">
-              <Link to="/app/calendar">
-                <Calendar className="h-3.5 w-3.5 mr-1.5" /> Calendar
-              </Link>
-            </Button>
-          </div>
-        </div>
 
-        {/* Stats */}
-        <div className="space-y-4">
-          <Stat label="Thoughts saved" value={thoughts.length.toString()} />
-          <Stat label="Open tasks" value="—" hint="Add tasks in Planner" />
-          <Stat label="Team activity" value="Quiet" hint="No unread messages" />
-        </div>
-      </div>
+          <h1 className="font-display text-5xl md:text-7xl font-bold tracking-tight mb-4 animate-in fade-in slide-in-from-left-4 duration-700">
+            Welcome back,{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7B5EA7] to-[#4ECDC4]">
+              {firstName}.
+            </span>
+          </h1>
+          <p className="text-[#F5F5F7]/40 text-lg md:text-xl max-w-2xl leading-relaxed mb-10 animate-in fade-in slide-in-from-left-4 duration-1000">
+            The workspace has been synthesized. Your intelligence engine is ready to organize the
+            chaos.
+          </p>
 
-      {/* Recent outputs */}
-      <div className="mx-auto max-w-6xl px-4 md:px-10 pb-12">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display text-2xl">Recent outputs</h2>
-          <Link
-            to="/app/thoughts"
-            className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center"
-          >
-            All thoughts <ArrowRight className="h-3 w-3 ml-1" />
-          </Link>
-        </div>
-        {thoughts.length === 0 ? (
-          <div className="rounded-md border border-dashed border-border bg-card p-10 text-center">
-            <MessageSquare className="h-6 w-6 mx-auto text-muted-foreground" />
-            <p className="mt-2 text-sm text-muted-foreground">Nothing saved yet.</p>
-            <Button asChild size="sm" className="mt-4">
-              <Link to="/app/workspace">Transform your first thought</Link>
-            </Button>
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {thoughts.map((t) => (
-              <Link
-                key={t.id}
-                to="/app/thoughts"
-                className="rounded-md border border-border bg-card paper-lift p-4 block"
-              >
-                <span className="text-[10px] uppercase tracking-wider chip-sage rounded-full px-2 py-0.5">
-                  {t.format || t.type || "note"}
-                </span>
-                <p className="mt-3 text-sm line-clamp-5 text-foreground/80 whitespace-pre-wrap">
-                  {t.output || t.text || t.input}
+          <div className="grid gap-6 md:grid-cols-3">
+            <div className="md:col-span-2 rounded-[32px] bg-[#1A1A24]/40 border border-white/5 backdrop-blur-xl p-8 shadow-2xl relative overflow-hidden group hover:border-[#7B5EA7]/20 transition-colors duration-500">
+              <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Brain className="h-32 w-32 text-[#7B5EA7]" />
+              </div>
+
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-[#4ECDC4]" />
+                  <h2 className="text-xs uppercase tracking-widest font-bold text-[#F5F5F7]/60">
+                    Workspace Synthesis
+                  </h2>
+                </div>
+                <Button
+                  onClick={generateSummary}
+                  disabled={loading}
+                  variant="ghost"
+                  className="text-[10px] uppercase tracking-widest font-bold hover:bg-white/5"
+                >
+                  {loading ? "Synthesizing..." : brief ? "Refresh" : "Generate Brief"}
+                </Button>
+              </div>
+
+              {brief ? (
+                <div className="prose prose-invert max-w-none prose-p:text-lg prose-p:leading-relaxed animate-in fade-in duration-500">
+                  {brief}
+                </div>
+              ) : (
+                <p className="text-[#F5F5F7]/40 text-lg leading-relaxed">
+                  Your daily intelligence brief is ready to be composed. Pull insights from your
+                  latest thoughts and tasks.
                 </p>
-              </Link>
-            ))}
+              )}
+
+              <div className="mt-8 flex gap-3">
+                <Button
+                  asChild
+                  className="rounded-full bg-[#7B5EA7] hover:bg-[#7B5EA7]/80 h-12 px-8"
+                >
+                  <Link to="/app/workspace">
+                    <Zap className="h-4 w-4 mr-2" /> Enter Workspace
+                  </Link>
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <StatCard
+                icon={<Target />}
+                label="Active Tasks"
+                value="3"
+                trend="+1 since yesterday"
+                color="#7B5EA7"
+              />
+              <StatCard
+                icon={<MessageSquare />}
+                label="Team Syncs"
+                value="12"
+                trend="Active now"
+                color="#4ECDC4"
+              />
+              <StatCard
+                icon={<History />}
+                label="Brain Dumps"
+                value={thoughts.length.toString()}
+                trend="Captured this week"
+                color="#F5F5F7"
+              />
+            </div>
           </div>
-        )}
+        </div>
+      </div>
+
+      {/* Action Grid */}
+      <div className="max-w-6xl mx-auto px-6 mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
+        <QuickAction to="/app/planner" label="Planner" icon={<Plus />} />
+        <QuickAction to="/app/team" label="Team" icon={<Plus />} />
+        <QuickAction to="/app/settings" label="Settings" icon={<Settings />} />
+        <QuickAction to="/app/thoughts" label="Archive" icon={<Plus />} />
       </div>
     </div>
   );
 }
 
-function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
+function StatCard({ icon, label, value, trend, color }: any) {
   return (
-    <div className="rounded-md border border-border bg-card p-4">
-      <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
-      <p className="mt-2 font-display text-3xl">{value}</p>
-      {hint && <p className="mt-1 text-[11px] text-muted-foreground">{hint}</p>}
+    <div className="rounded-[24px] bg-[#1A1A24]/40 border border-white/5 backdrop-blur-xl p-6 hover:border-white/10 transition-colors">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center text-white/60">
+          {icon}
+        </div>
+        <span className="text-[10px] uppercase tracking-widest font-bold text-white/40">
+          {label}
+        </span>
+      </div>
+      <div className="flex items-end justify-between">
+        <span className="text-3xl font-display font-bold leading-none" style={{ color }}>
+          {value}
+        </span>
+        <span className="text-[9px] uppercase tracking-wider font-bold text-white/20">{trend}</span>
+      </div>
     </div>
+  );
+}
+
+function QuickAction({ to, label, icon }: any) {
+  return (
+    <Link
+      to={to}
+      className="group rounded-[20px] bg-[#1A1A24]/40 border border-white/5 p-4 flex flex-col items-center justify-center gap-3 hover:bg-[#7B5EA7]/10 hover:border-[#7B5EA7]/30 transition-all duration-300 text-center"
+    >
+      <div className="h-10 w-10 rounded-full bg-white/5 flex items-center justify-center text-white/40 group-hover:text-[#7B5EA7] group-hover:scale-110 transition-all">
+        {icon}
+      </div>
+      <span className="text-[10px] uppercase tracking-widest font-bold text-white/40 group-hover:text-white transition-colors">
+        {label}
+      </span>
+    </Link>
   );
 }

@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "../lib/auth-context";
+import { SettingsProvider } from "../lib/settings-context";
 import { ThemeProvider } from "../lib/theme-context";
 import { Toaster } from "../components/ui/sonner";
 import { Splash } from "../components/Splash";
@@ -121,9 +122,11 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <Splash />
-          <Outlet />
-          <Toaster />
+          <SettingsProvider>
+            <Splash />
+            <Outlet />
+            <Toaster />
+          </SettingsProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
