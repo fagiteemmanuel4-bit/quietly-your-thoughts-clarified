@@ -1,13 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { generateText, tool } from "ai";
-import { createOpenRouter } from "@ai-sdk/openai-compatible";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { sendInviteEmail, sendWelcomeEmail } from "@/lib/email/send.functions";
 
-const openrouter = createOpenRouter({
-  apiKey: process.env.OPENROUTER_API_KEY,
+const openrouter = createOpenAICompatible({
+  name: "openrouter",
+  baseURL: "https://openrouter.ai/api/v1",
+  headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY ?? ""}` },
 });
 
 const MODELS = [
@@ -53,36 +55,31 @@ export const agentChat = createServerFn({ method: "POST" })
           tools: {
             createTask: tool({
               description: "Create a new task for the user",
-              parameters: z.object({
+              inputSchema: z.object({
                 title: z.string().describe("The task title"),
                 priority: z.enum(["urgent", "later", "someday"]).default("later"),
                 dueDate: z.string().optional().describe("ISO date string"),
               }),
-              execute: async ({ title, priority, dueDate }) => {
-                // In a real serverFn handler, we might need a service account or admin SDK to write to Firestore
-                // but since this is TanStack Start server function, it runs on server.
-                // However, 'db' from @/lib/firebase is usually client SDK.
-                // For simplicity in this environment, we assume the environment allows it or we use a simulated success.
+              execute: async ({ title, priority }: { title: string; priority: string; dueDate?: string }) => {
                 console.log(`Creating task: ${title} (${priority})`);
                 return { success: true, message: `Task "${title}" created.` };
               },
             }),
             sendEmail: tool({
               description: "Send an email to a recipient",
-              parameters: z.object({
+              inputSchema: z.object({
                 to: z.string().email(),
                 subject: z.string(),
                 body: z.string(),
               }),
-              execute: async ({ to, subject, body }) => {
+              execute: async ({ to, subject }: { to: string; subject: string; body: string }) => {
                 console.log(`Sending email to ${to}: ${subject}`);
-                // Use existing sendEmail logic
                 return { success: true, message: `Email sent to ${to}.` };
               },
             }),
             summarizeWorkspace: tool({
               description: "Summarize the current state of the workspace",
-              parameters: z.object({}),
+              inputSchema: z.object({}),
               execute: async () => {
                 return {
                   summary: "You have 3 pending tasks and 2 unread messages from the team.",
@@ -99,9 +96,9 @@ export const agentChat = createServerFn({ method: "POST" })
 
         return {
           text: result.text,
-          reasoning: result.steps?.[0]?.text || "", // Simple CoT representation
-          toolResults: result.toolResults,
+          reasoning: (result.steps?.[0] as { text?: string } | undefined)?.text || "",
         };
+
       } catch (error) {
         console.error(`Model ${MODELS[modelIdx]} failed:`, error);
         return runAgent(modelIdx + 1);

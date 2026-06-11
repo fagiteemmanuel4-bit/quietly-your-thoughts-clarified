@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { helpAssistant } from "@/lib/help.functions";
 import ReactMarkdown from "react-markdown";
