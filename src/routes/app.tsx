@@ -23,6 +23,7 @@ import {
   Timer,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 export const Route = createFileRoute("/app")({
   ssr: false,
@@ -147,14 +148,23 @@ function AppLayout() {
               </div>
               <div className="mt-3 flex items-center justify-between">
                 <ThemeToggle />
-                <Button
-                  onClick={() => logout()}
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground h-7 px-2"
-                >
-                  <LogOut className="h-3.5 w-3.5 mr-1" /> Sign out
-                </Button>
+                <ConfirmDialog
+                  title="Sign out of Quietly?"
+                  description="You'll need to log back in to access your thoughts."
+                  confirmLabel="Sign out"
+                  onConfirm={() => logout()}
+                  trigger={(open) => (
+                    <Button
+                      onClick={open}
+                      variant="ghost"
+                      size="sm"
+                      className="text-muted-foreground h-7 px-2"
+                    >
+                      <LogOut className="h-3.5 w-3.5 mr-1" /> Sign out
+                    </Button>
+                  )}
+                />
+
               </div>
             </div>
           ) : (
@@ -163,13 +173,22 @@ function AppLayout() {
                 {initial}
               </div>
               <ThemeToggle />
-              <button
-                onClick={() => logout()}
-                className="h-7 w-7 grid place-items-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
-                aria-label="Sign out"
-              >
-                <LogOut className="h-3.5 w-3.5" />
-              </button>
+              <ConfirmDialog
+                title="Sign out of Quietly?"
+                description="You'll need to log back in to access your thoughts."
+                confirmLabel="Sign out"
+                onConfirm={() => logout()}
+                trigger={(open) => (
+                  <button
+                    onClick={open}
+                    className="h-7 w-7 grid place-items-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+                    aria-label="Sign out"
+                  >
+                    <LogOut className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              />
+
             </div>
           )}
         </div>
@@ -183,13 +202,21 @@ function AppLayout() {
         </div>
         <div className="flex items-center gap-1">
           <ThemeToggle />
-          <button
-            onClick={() => logout()}
-            className="h-9 w-9 grid place-items-center rounded-xl text-muted-foreground hover:bg-accent haptic-touch"
-            aria-label="Sign out"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
+          <ConfirmDialog
+            title="Sign out?"
+            confirmLabel="Sign out"
+            onConfirm={() => logout()}
+            trigger={(open) => (
+              <button
+                onClick={open}
+                className="h-9 w-9 grid place-items-center rounded-xl text-muted-foreground hover:bg-accent haptic-touch"
+                aria-label="Sign out"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            )}
+          />
+
         </div>
       </div>
 
