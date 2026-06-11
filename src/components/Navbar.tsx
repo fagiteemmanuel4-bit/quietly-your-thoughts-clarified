@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Brand, BetaPill } from "./Brand";
+import { Brand } from "./Brand";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -7,50 +7,33 @@ import { Button } from "@/components/ui/button";
 export function Navbar() {
   const { user } = useAuth();
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 md:px-6">
-        <div className="flex items-center gap-3">
-          <Brand />
-          <BetaPill />
-        </div>
-        <nav className="hidden items-center gap-7 md:flex">
-          <Link
-            to="/"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Home
-          </Link>
-          <a
-            href="/#features"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Features
-          </a>
-          <a
-            href="/#pricing"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Pricing
-          </a>
-          <Link
-            to="/contact"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Contact
-          </Link>
+    <header className="sticky top-0 z-40 w-full border-b border-border bg-background/90 backdrop-blur-md">
+      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 md:px-6">
+        <Brand />
+        <nav className="hidden items-center gap-6 md:flex">
+          {[
+            { label: "Features", href: "/#features" },
+            { label: "Pricing",  href: "/#pricing" },
+            { label: "Contact",  href: "/#contact" },
+          ].map(n => (
+            <a key={n.label} href={n.href}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              {n.label}
+            </a>
+          ))}
         </nav>
         <div className="flex items-center gap-2">
           <ThemeToggle />
           {user ? (
-            <Button asChild size="sm" className="rounded-md">
-              <Link to="/app">Open app</Link>
+            <Button asChild size="sm" className="rounded-md h-8 px-3 text-xs">
+              <Link to="/app">Open app →</Link>
             </Button>
           ) : (
             <>
-              <Button asChild size="sm" variant="ghost">
+              <Button asChild size="sm" variant="ghost" className="h-8 px-3 text-xs">
                 <Link to="/auth/login">Sign in</Link>
               </Button>
-              <Button asChild size="sm" className="rounded-md">
+              <Button asChild size="sm" className="rounded-md h-8 px-3 text-xs">
                 <Link to="/auth/signup">Get started</Link>
               </Button>
             </>

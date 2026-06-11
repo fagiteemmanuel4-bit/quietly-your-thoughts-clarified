@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { ReviewPopup } from "@/components/ReviewPopup";
 
 export const Route = createFileRoute("/app")({
   ssr: false,
@@ -90,8 +91,8 @@ function AppLayout() {
     <div className="min-h-screen flex bg-background">
       {/* Sidebar — desktop */}
       <aside
-        className={`hidden md:flex sticky top-0 h-screen shrink-0 flex-col border-r border-border/60 bg-subtle/40 transition-[width] duration-300 ${
-          collapsed ? "w-16" : "w-60"
+        className={`hidden md:flex sticky top-0 h-screen shrink-0 flex-col border-r border-border bg-subtle transition-[width] duration-200 ${
+          collapsed ? "w-14" : "w-56"
         }`}
       >
         <div
@@ -257,6 +258,7 @@ function AppLayout() {
         </button>
       </div>
       <QuickCapture open={quickOpen} onClose={() => setQuickOpen(false)} />
+      <ReviewPopup />
 
       {/* Mobile bottom tabs */}
       <nav className="md:hidden fixed bottom-6 inset-x-6 z-30 h-16 glass rounded-full flex items-center px-2 shadow-lift border-none">

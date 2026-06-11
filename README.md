@@ -245,7 +245,7 @@ In your Vercel project → **Settings → Environment Variables**, add every key
 | Setting | Value |
 |---|---|
 | Build command | `bun run build` |
-| Output directory | `dist` |
+| Output directory | `.output/public` (TanStack Start + Nitro) |
 | Install command | `bun install` |
 | Node.js version | 20.x |
 
