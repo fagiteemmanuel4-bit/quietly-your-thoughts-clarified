@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
-import { Route as StatusRouteImport } from './routes/status'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as CookiesRouteImport } from './routes/cookies'
@@ -27,17 +26,11 @@ import { Route as AppTeamRouteImport } from './routes/app.team'
 import { Route as AppSpacesRouteImport } from './routes/app.spaces'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppPlannerRouteImport } from './routes/app.planner'
-import { Route as AppOrchestratorRouteImport } from './routes/app.orchestrator'
 import { Route as AppCalendarRouteImport } from './routes/app.calendar'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const StatusRoute = StatusRouteImport.update({
-  id: '/status',
-  path: '/status',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -120,11 +113,6 @@ const AppPlannerRoute = AppPlannerRouteImport.update({
   path: '/planner',
   getParentRoute: () => AppRoute,
 } as any)
-const AppOrchestratorRoute = AppOrchestratorRouteImport.update({
-  id: '/orchestrator',
-  path: '/orchestrator',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppCalendarRoute = AppCalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
@@ -139,10 +127,8 @@ export interface FileRoutesByFullPath {
   '/cookies': typeof CookiesRoute
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
-  '/status': typeof StatusRoute
   '/terms': typeof TermsRoute
   '/app/calendar': typeof AppCalendarRoute
-  '/app/orchestrator': typeof AppOrchestratorRoute
   '/app/planner': typeof AppPlannerRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/spaces': typeof AppSpacesRoute
@@ -160,10 +146,8 @@ export interface FileRoutesByTo {
   '/cookies': typeof CookiesRoute
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
-  '/status': typeof StatusRoute
   '/terms': typeof TermsRoute
   '/app/calendar': typeof AppCalendarRoute
-  '/app/orchestrator': typeof AppOrchestratorRoute
   '/app/planner': typeof AppPlannerRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/spaces': typeof AppSpacesRoute
@@ -183,10 +167,8 @@ export interface FileRoutesById {
   '/cookies': typeof CookiesRoute
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
-  '/status': typeof StatusRoute
   '/terms': typeof TermsRoute
   '/app/calendar': typeof AppCalendarRoute
-  '/app/orchestrator': typeof AppOrchestratorRoute
   '/app/planner': typeof AppPlannerRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/spaces': typeof AppSpacesRoute
@@ -207,10 +189,8 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/onboarding'
     | '/privacy'
-    | '/status'
     | '/terms'
     | '/app/calendar'
-    | '/app/orchestrator'
     | '/app/planner'
     | '/app/settings'
     | '/app/spaces'
@@ -228,10 +208,8 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/onboarding'
     | '/privacy'
-    | '/status'
     | '/terms'
     | '/app/calendar'
-    | '/app/orchestrator'
     | '/app/planner'
     | '/app/settings'
     | '/app/spaces'
@@ -250,10 +228,8 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/onboarding'
     | '/privacy'
-    | '/status'
     | '/terms'
     | '/app/calendar'
-    | '/app/orchestrator'
     | '/app/planner'
     | '/app/settings'
     | '/app/spaces'
@@ -273,7 +249,6 @@ export interface RootRouteChildren {
   CookiesRoute: typeof CookiesRoute
   OnboardingRoute: typeof OnboardingRoute
   PrivacyRoute: typeof PrivacyRoute
-  StatusRoute: typeof StatusRoute
   TermsRoute: typeof TermsRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthSignupRoute: typeof AuthSignupRoute
@@ -286,13 +261,6 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/status': {
-      id: '/status'
-      path: '/status'
-      fullPath: '/status'
-      preLoaderRoute: typeof StatusRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -407,13 +375,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPlannerRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/orchestrator': {
-      id: '/app/orchestrator'
-      path: '/orchestrator'
-      fullPath: '/app/orchestrator'
-      preLoaderRoute: typeof AppOrchestratorRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/app/calendar': {
       id: '/app/calendar'
       path: '/calendar'
@@ -426,7 +387,6 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppCalendarRoute: typeof AppCalendarRoute
-  AppOrchestratorRoute: typeof AppOrchestratorRoute
   AppPlannerRoute: typeof AppPlannerRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppSpacesRoute: typeof AppSpacesRoute
@@ -438,7 +398,6 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppCalendarRoute: AppCalendarRoute,
-  AppOrchestratorRoute: AppOrchestratorRoute,
   AppPlannerRoute: AppPlannerRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppSpacesRoute: AppSpacesRoute,
@@ -458,7 +417,6 @@ const rootRouteChildren: RootRouteChildren = {
   CookiesRoute: CookiesRoute,
   OnboardingRoute: OnboardingRoute,
   PrivacyRoute: PrivacyRoute,
-  StatusRoute: StatusRoute,
   TermsRoute: TermsRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthSignupRoute: AuthSignupRoute,

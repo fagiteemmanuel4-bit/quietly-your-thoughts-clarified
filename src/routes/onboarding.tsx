@@ -1,134 +1,248 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Brand } from "@/components/Brand";
+import { useAuth } from "@/lib/auth-context";
+import { db } from "@/lib/firebase";
+import { doc, updateDoc } from "firebase/firestore";
 import {
+  ArrowRight,
+  ArrowLeft,
   Sparkles,
-  ChevronRight,
-  ChevronLeft,
-  Brain,
   Target,
-  Zap,
+  Briefcase,
+  Lightbulb,
+  Palette,
+  CheckCircle2,
   Users,
-  ShieldCheck,
-  Rocket
+  User,
+  Building,
 } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
+import { toast } from "sonner";
 
-export const Route = createFileRoute("/onboarding")({ component: OnboardingPage });
+export const Route = createFileRoute("/onboarding")({
+  component: Onboarding,
+});
 
 const STEPS = [
-  {
-    title: "Welcome to the Neural Era.",
-    description: "Quietly is more than a workspace. It's an extension of your mind, designed to synthesize clarity from chaos.",
-    icon: <Brain className="h-8 w-8 text-[#7B5EA7]" />,
-    color: "#7B5EA7"
-  },
-  {
-    title: "Messey Thoughts, Clean Output.",
-    description: "Drop your raw brain dumps into the workspace. Our neural engine will organize them into actionable intelligence instantly.",
-    icon: <Zap className="h-8 w-8 text-[#4ECDC4]" />,
-    color: "#4ECDC4"
-  },
-  {
-    title: "Collaborative Resonance.",
-    description: "Shared Spaces allow you and your team to brainstorm in real-time. Everything is contextually synced via our AI core.",
-    icon: <Users className="h-8 w-8 text-white/40" />,
-    color: "#FFFFFF"
-  },
-  {
-    title: "Security by Design.",
-    description: "Your data is yours. Use our Secrets Vault for client-side encrypted storage of your most sensitive intelligence.",
-    icon: <ShieldCheck className="h-8 w-8 text-emerald-500" />,
-    color: "#10b981"
-  },
-  {
-    title: "Define Your Focus.",
-    description: "What's your primary goal this week? We'll tailor the synthesis brief to highlight what matters most to you.",
-    icon: <Target className="h-8 w-8 text-orange-400" />,
-    color: "#fb923c"
-  },
-  {
-    title: "Ready for Synthesis.",
-    description: "You're all set. Your workspace is initialized and the neural engine is warming up.",
-    icon: <Rocket className="h-8 w-8 text-indigo-400" />,
-    color: "#818cf8"
-  }
+  { id: "welcome", title: "Welcome to Quietly", icon: Sparkles },
+  { id: "goals", title: "What's your goal?", icon: Target },
+  { id: "environment", title: "Your environment", icon: Briefcase },
+  { id: "use-case", title: "Primary use case", icon: Lightbulb },
+  { id: "theme", title: "Choose your vibe", icon: Palette },
+  { id: "final", title: "You're all set!", icon: CheckCircle2 },
 ];
 
-function OnboardingPage() {
+function Onboarding() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
-  const nav = useNavigate();
-  const progress = ((currentStep + 1) / STEPS.length) * 100;
+  const [data, setData] = useState({
+    goal: "",
+    environment: "",
+    useCase: "",
+    theme: "light",
+  });
+  const [loading, setLoading] = useState(false);
 
   const next = () => {
     if (currentStep < STEPS.length - 1) {
-      setCurrentStep(prev => prev + 1);
+      setCurrentStep(currentStep + 1);
     } else {
-      nav({ to: "/app" });
+      finish();
     }
   };
 
   const prev = () => {
-    if (currentStep > 0) setCurrentStep(prev => prev - 1);
+    if (currentStep > 0) setCurrentStep(currentStep - 1);
   };
 
-  const step = STEPS[currentStep];
+  const finish = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      await updateDoc(doc(db, "users", user.uid), {
+        onboarded: true,
+        preferences: data,
+      });
+      toast.success("Welcome aboard!");
+      navigate({ to: "/app" });
+    } catch (error) {
+      toast.error("Failed to save preferences.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateData = (key: string, value: string) => {
+    setData((prev) => ({ ...prev, [key]: value }));
+  };
 
   return (
-    <div className="min-h-screen bg-[#0D0D12] text-[#F5F5F7] flex flex-col items-center justify-center p-6">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
-        <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] rounded-full blur-[160px] transition-colors duration-1000"
-            style={{ backgroundColor: step.color }}
-        />
-      </div>
-
-      <div className="max-w-xl w-full relative z-10">
-        <div className="flex flex-col items-center text-center mb-12">
-            <div className="h-20 w-20 rounded-[32px] bg-[#1A1A24]/60 border border-white/5 backdrop-blur-xl flex items-center justify-center shadow-2xl mb-8 animate-in zoom-in duration-700">
-                {step.icon}
-            </div>
-            <h1 className="text-4xl md:text-5xl font-display font-bold tracking-tight mb-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                {step.title}
-            </h1>
-            <p className="text-white/40 text-lg leading-relaxed animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200">
-                {step.description}
-            </p>
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 selection:bg-violet/20">
+      <div className="max-w-xl w-full">
+        {/* Progress bar */}
+        <div className="flex gap-2 mb-12">
+          {STEPS.map((_, i) => (
+            <div
+              key={i}
+              className={`h-1 flex-1 rounded-full transition-colors duration-500 ${
+                i <= currentStep ? "bg-foreground" : "bg-muted"
+              }`}
+            />
+          ))}
         </div>
 
-        <div className="space-y-10">
-            <div className="space-y-4">
-                <div className="flex items-center justify-between px-1">
-                    <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-white/20">Progress</span>
-                    <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-[#7B5EA7]">{currentStep + 1} / {STEPS.length}</span>
-                </div>
-                <Progress value={progress} className="h-1 bg-white/5" />
-            </div>
+        <div className="space-y-8 fade-up">
+          <div className="flex items-center gap-3 text-muted-foreground">
+            {(() => {
+              const Icon = STEPS[currentStep].icon;
+              return <Icon className="h-5 w-5" />;
+            })()}
+            <span className="text-xs uppercase tracking-widest font-medium">
+              Step {currentStep + 1} of 6
+            </span>
+          </div>
 
-            <div className="flex gap-4">
-                {currentStep > 0 && (
-                    <Button
-                        onClick={prev}
-                        variant="ghost"
-                        className="flex-1 h-14 rounded-2xl border border-white/5 text-white/40 hover:text-white hover:bg-white/5 font-bold uppercase tracking-widest text-xs"
+          <h1 className="font-display text-4xl md:text-5xl leading-tight">
+            {STEPS[currentStep].title}
+          </h1>
+
+          <div className="min-h-[200px]">
+            {currentStep === 0 && (
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                Quietly is designed to help you clear the mental clutter. Let's personalize your
+                experience to make sure you get the most out of your quiet time.
+              </p>
+            )}
+
+            {currentStep === 1 && (
+              <div className="grid gap-3">
+                {[
+                  "Clarity of thought",
+                  "Better planning",
+                  "Team collaboration",
+                  "Self-reflection",
+                ].map((g) => (
+                  <button
+                    key={g}
+                    onClick={() => updateData("goal", g)}
+                    className={`p-4 rounded-xl border text-left transition ${
+                      data.goal === g
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border hover:border-foreground/50"
+                    }`}
+                  >
+                    {g}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {currentStep === 2 && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { id: "solo", label: "Solo", icon: User },
+                  { id: "team", label: "Team", icon: Users },
+                  { id: "corp", label: "Corporate", icon: Building },
+                ].map((e) => {
+                  const Icon = e.icon;
+                  return (
+                    <button
+                      key={e.id}
+                      onClick={() => updateData("environment", e.id)}
+                      className={`p-6 rounded-2xl border flex flex-col items-center gap-3 transition ${
+                        data.environment === e.id
+                          ? "border-foreground bg-foreground text-background"
+                          : "border-border hover:border-foreground/50"
+                      }`}
                     >
-                        <ChevronLeft className="h-4 w-4 mr-2" /> Back
-                    </Button>
-                )}
-                <Button
-                    onClick={next}
-                    className="flex-[2] h-14 rounded-2xl bg-white text-[#0D0D12] hover:bg-white/90 font-bold uppercase tracking-widest text-xs shadow-xl shadow-white/5 group"
-                >
-                    {currentStep === STEPS.length - 1 ? "Initialize Workspace" : "Continue"}
-                    <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-            </div>
-        </div>
-      </div>
+                      <Icon className="h-6 w-6" />
+                      <span className="text-sm font-medium">{e.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
-      <div className="mt-20 flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.02] border border-white/5">
-        <Sparkles className="h-3 w-3 text-white/20" />
-        <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-white/10">Neural Onboarding — v2.4</span>
+            {currentStep === 3 && (
+              <div className="grid gap-3">
+                {[
+                  "Meeting Notes",
+                  "Daily Journaling",
+                  "Task Management",
+                  "Creative Brainstorming",
+                ].map((u) => (
+                  <button
+                    key={u}
+                    onClick={() => updateData("useCase", u)}
+                    className={`p-4 rounded-xl border text-left transition ${
+                      data.useCase === u
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border hover:border-foreground/50"
+                    }`}
+                  >
+                    {u}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {currentStep === 4 && (
+              <div className="flex gap-6 justify-center">
+                <button
+                  onClick={() => updateData("theme", "light")}
+                  className={`group flex flex-col items-center gap-3 transition ${data.theme === "light" ? "scale-105" : "opacity-50"}`}
+                >
+                  <div className="h-24 w-32 rounded-xl bg-[#F9F7F4] border-4 border-white shadow-lift" />
+                  <span className="text-xs font-bold tracking-widest uppercase">Light Paper</span>
+                </button>
+                <button
+                  onClick={() => updateData("theme", "dark")}
+                  className={`group flex flex-col items-center gap-3 transition ${data.theme === "dark" ? "scale-105" : "opacity-50"}`}
+                >
+                  <div className="h-24 w-32 rounded-xl bg-[#0E0E0E] border-4 border-zinc-800 shadow-lift" />
+                  <span className="text-xs font-bold tracking-widest uppercase">Deep Ink</span>
+                </button>
+              </div>
+            )}
+
+            {currentStep === 5 && (
+              <div className="text-center space-y-4">
+                <div className="h-20 w-20 bg-sage/20 text-sage rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle2 className="h-10 w-10" />
+                </div>
+                <p className="text-lg text-muted-foreground">
+                  Your workspace is ready. We've tailored everything based on your preferences.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between pt-8">
+            <Button
+              variant="ghost"
+              onClick={prev}
+              disabled={currentStep === 0}
+              className="rounded-full px-6"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" /> Back
+            </Button>
+            <Button
+              onClick={next}
+              disabled={
+                loading ||
+                (currentStep === 1 && !data.goal) ||
+                (currentStep === 2 && !data.environment) ||
+                (currentStep === 3 && !data.useCase)
+              }
+              className="rounded-full px-8 h-12 shadow-lift"
+            >
+              {currentStep === STEPS.length - 1 ? "Enter Workspace" : "Continue"}{" "}
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

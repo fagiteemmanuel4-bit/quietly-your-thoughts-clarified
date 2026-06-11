@@ -1,29 +1,65 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { LegalLayout } from "./privacy";
 
-export const Route = createFileRoute("/cookies")({ component: CookiesPage });
+export const Route = createFileRoute("/cookies")({
+  head: () => ({
+    meta: [
+      { title: "Cookie Policy — Quietly" },
+      { name: "description", content: "How Quietly uses cookies and similar technologies." },
+    ],
+  }),
+  component: Cookies,
+});
 
-function CookiesPage() {
+function Cookies() {
   return (
-    <div className="min-h-screen bg-[#0D0D12] text-[#F5F5F7] py-20 px-6">
-      <div className="max-w-3xl mx-auto prose prose-invert prose-p:text-white/40 prose-p:leading-relaxed">
-        <Link to="/" className="text-[10px] uppercase tracking-[0.3em] font-bold text-[#7B5EA7] mb-12 inline-block hover:text-white transition-colors">← Back to System</Link>
-        <h1 className="text-4xl font-display font-bold mb-8">Cookie Policy</h1>
+    <LegalLayout title="Cookie Policy" updated="June 9, 2026">
+      <p>
+        This Cookie Policy explains how Quietly uses cookies and similar technologies when you visit
+        our Service.
+      </p>
 
-        <section className="mb-12">
-            <h2 className="text-xl font-bold mb-4">1. Neural Persistence</h2>
-            <p>We use essential cookies to maintain your session and ensure your AI context remains consistent during use.</p>
-        </section>
+      <h2 className="font-display text-2xl mt-10">1. What are cookies</h2>
+      <p>
+        Cookies are small text files stored on your device when you visit a website. They allow the
+        site to remember information about you, such as preferences and login state.
+      </p>
 
-        <section className="mb-12">
-            <h2 className="text-xl font-bold mb-4">2. Preference Storage</h2>
-            <p>Cookies help us remember your theme choices and AI model preferences so your workspace feels like home every time.</p>
-        </section>
+      <h2 className="font-display text-2xl mt-10">2. Cookies we use</h2>
+      <ul className="list-disc pl-6 space-y-2">
+        <li>
+          <strong>Essential cookies</strong> — required for authentication and core functionality.
+          Cannot be disabled.
+        </li>
+        <li>
+          <strong>Preference cookies</strong> — remember your settings (e.g. dark mode).
+        </li>
+        <li>
+          <strong>Analytics cookies</strong> — help us understand usage in aggregate. You can opt
+          out.
+        </li>
+      </ul>
 
-        <section className="mb-12">
-            <h2 className="text-xl font-bold mb-4">3. Third-party</h2>
-            <p>Our authentication (Firebase) and payment providers may set cookies to handle secure transactions and identity verification.</p>
-        </section>
-      </div>
-    </div>
+      <h2 className="font-display text-2xl mt-10">3. Third-party cookies</h2>
+      <p>
+        Our authentication providers (e.g. Google) and analytics tools may set their own cookies
+        under their respective privacy policies.
+      </p>
+
+      <h2 className="font-display text-2xl mt-10">4. Managing cookies</h2>
+      <p>
+        You can manage cookies via your browser settings. Disabling essential cookies may impair
+        core Service functionality.
+      </p>
+
+      <h2 className="font-display text-2xl mt-10">5. Contact</h2>
+      <p>
+        Questions? Email{" "}
+        <a href="mailto:privacy@quietly.app" className="underline">
+          privacy@quietly.app
+        </a>
+        .
+      </p>
+    </LegalLayout>
   );
 }

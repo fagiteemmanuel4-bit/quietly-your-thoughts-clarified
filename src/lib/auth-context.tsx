@@ -6,7 +6,6 @@ import {
   signInWithPopup,
   signOut,
   updateProfile,
-  deleteUser,
   type User,
 } from "firebase/auth";
 import { auth, googleProvider } from "./firebase";
@@ -18,8 +17,6 @@ type AuthContextValue = {
   signUpEmail: (email: string, password: string, name?: string) => Promise<void>;
   signInGoogle: () => Promise<void>;
   logout: () => Promise<void>;
-  updateName: (name: string) => Promise<void>;
-  deleteAccount: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -51,17 +48,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     logout: async () => {
       await signOut(auth);
-    },
-    updateName: async (name: string) => {
-      if (auth.currentUser) {
-        await updateProfile(auth.currentUser, { displayName: name });
-        setUser({ ...auth.currentUser });
-      }
-    },
-    deleteAccount: async () => {
-      if (auth.currentUser) {
-        await deleteUser(auth.currentUser);
-      }
     },
   };
 
