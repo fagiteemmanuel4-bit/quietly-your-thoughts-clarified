@@ -54,7 +54,7 @@ export function OtpInput({ value, onChange, onComplete, disabled, length = 6 }: 
           value={value[i] || ""}
           onChange={(e) => setDigit(i, e.target.value)}
           onKeyDown={(e) => handleKey(i, e)}
-          className="w-11 h-13 md:w-12 md:h-14 text-center text-xl font-mono rounded-md border border-border bg-card focus:border-foreground focus:outline-none transition disabled:opacity-50"
+          className="w-11 h-13 md:w-12 md:h-14 text-center text-xl font-mono rounded-xl border border-border bg-card focus:outline-none transition disabled:opacity-50" style={{ "--tw-ring-color": "var(--green)" }}
         />
       ))}
     </div>

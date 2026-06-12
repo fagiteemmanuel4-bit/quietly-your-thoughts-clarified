@@ -211,7 +211,7 @@ function Settings() {
               return (
                 <button key={t.id} onClick={() => setTab(t.id)}
                   className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition whitespace-nowrap ${
-                    tab === t.id ? "bg-foreground text-background" : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                    tab === t.id ? "text-white" : "text-muted-foreground hover:bg-accent hover:text-foreground"
                   }`}>
                   <Icon className="h-4 w-4 shrink-0" /> {t.label}
                 </button>

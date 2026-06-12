@@ -31,56 +31,85 @@ export const Route = createFileRoute("/")({
 // ─── Hero ──────────────────────────────────────────────────────────────────
 function Hero() {
   return (
-    <section className="relative min-h-[92vh] flex items-center justify-center overflow-hidden pt-20 px-6">
-      <div className="absolute inset-0 z-0">
-        <img src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&q=80&w=2000"
-          alt="" className="w-full h-full object-cover opacity-15 dark:opacity-8 grayscale" />
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-background/85 to-background" />
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden px-6 pt-10 pb-20">
+      {/* Green gradient backdrop */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] rounded-full opacity-20 dark:opacity-10 blur-3xl"
+          style={{ background: "radial-gradient(ellipse, var(--green) 0%, transparent 70%)" }} />
       </div>
+
       <div className="relative z-10 max-w-5xl w-full text-center fade-up">
-        <div className="inline-flex items-center gap-2 rounded-full border border-border/40 bg-card/40 backdrop-blur-md px-4 py-1.5 text-[11px] uppercase tracking-widest text-muted-foreground mb-8">
-          <Sparkles className="h-3 w-3 text-violet" /> Now in beta — free to start
+        {/* Owl hero */}
+        <div className="flex justify-center mb-8">
+          <div className="relative">
+            <div className="h-24 w-24 rounded-3xl flex items-center justify-center shadow-lg"
+              style={{ background: "var(--green)" }}>
+              <svg width="52" height="52" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="24" cy="28" rx="11" ry="12" fill="white" opacity="0.9"/>
+                <path d="M13 26 C8 22 6 30 11 33 L14 30 Z" fill="white" opacity="0.7"/>
+                <path d="M35 26 C40 22 42 30 37 33 L34 30 Z" fill="white" opacity="0.7"/>
+                <ellipse cx="24" cy="17" rx="10" ry="10" fill="white" opacity="0.9"/>
+                <path d="M16 10 L14 5 L19 9 Z" fill="white"/>
+                <path d="M32 10 L34 5 L29 9 Z" fill="white"/>
+                <circle cx="19.5" cy="17" r="4.5" fill="#052e16"/>
+                <circle cx="28.5" cy="17" r="4.5" fill="#052e16"/>
+                <circle cx="19.5" cy="17" r="3" fill="#4ade80"/>
+                <circle cx="28.5" cy="17" r="3" fill="#4ade80"/>
+                <circle cx="19.5" cy="17" r="1.4" fill="#052e16"/>
+                <circle cx="28.5" cy="17" r="1.4" fill="#052e16"/>
+                <circle cx="20.5" cy="16" r="0.7" fill="white"/>
+                <circle cx="29.5" cy="16" r="0.7" fill="white"/>
+                <path d="M22 20 L24 23 L26 20 Z" fill="#fbbf24"/>
+              </svg>
+            </div>
+            <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-green-400 flex items-center justify-center">
+              <span className="text-[9px]">✨</span>
+            </div>
+          </div>
         </div>
-        <h1 className="font-display text-6xl md:text-8xl leading-[0.93] tracking-tight">
+
+        <div className="chip-green inline-flex mb-6">
+          <span className="h-1.5 w-1.5 rounded-full bg-green-500 pulse-dot mr-1" />
+          Now in beta · free to start
+        </div>
+
+        <h1 className="font-display font-extrabold text-5xl md:text-7xl lg:text-8xl leading-tight tracking-tight">
           Your thoughts,<br />
-          <span className="italic text-muted-foreground/80">clarified.</span>
+          <span style={{ color: "var(--green)" }}>clarified.</span>
         </h1>
-        <p className="mt-8 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
-          Quietly is the intentional AI workspace where messy ideas become structured action — notes, summaries, tasks, emails, reports, and more. Instantly.
+
+        <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+          Quietly is the AI workspace where messy ideas become structured action — notes, summaries, tasks, emails, reports, and more. Instantly.
         </p>
-        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+
+        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link to="/auth/signup">
-            <Button size="lg" className="rounded-full h-13 px-8 text-base shadow-lift group">
-              Start free <ArrowRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-1" />
+            <Button size="lg" className="rounded-xl h-12 px-8 font-semibold group"
+              style={{ background: "var(--green)", color: "white" }}>
+              Get started free
+              <ArrowRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-1" />
             </Button>
           </Link>
           <a href="#demo">
-            <Button size="lg" variant="ghost" className="rounded-full h-13 px-8 text-base">
-              See it live <ChevronDown className="h-4 w-4 ml-1" />
+            <Button size="lg" variant="outline" className="rounded-xl h-12 px-8 font-semibold">
+              See live demo <ChevronDown className="h-4 w-4 ml-1" />
             </Button>
           </a>
         </div>
-        <p className="mt-6 text-xs text-muted-foreground">No credit card required · Free forever plan · Takes 30 seconds</p>
-      </div>
+        <p className="mt-4 text-xs text-muted-foreground">No credit card · Free forever plan · 30 seconds to set up</p>
 
-      {/* Floating cards */}
-      <div className="absolute bottom-12 left-8 hidden lg:block float-slow">
-        <div className="paper p-4 rounded-xl max-w-[200px] rotate-[-2deg] shadow-lift">
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">AI transformed ✨</p>
-          <p className="text-xs">- [ ] Follow up with James<br />- [ ] Send deck to Lisa<br />- [ ] Book venue</p>
-        </div>
-      </div>
-      <div className="absolute top-40 right-8 hidden lg:block float-slow" style={{ animationDelay: "2s" }}>
-        <div className="paper p-4 rounded-xl max-w-[180px] rotate-[2deg] shadow-lift">
-          <div className="flex items-center gap-1.5 mb-2">
-            <div className="h-2 w-2 rounded-full bg-sage animate-pulse" />
-            <span className="text-[10px] uppercase tracking-wider">3 online</span>
-          </div>
-          <div className="flex -space-x-2">
-            {["#8B7355","#6B9E78","#7B8FA1"].map((bg, i) => (
-              <div key={i} className="h-6 w-6 rounded-full border-2 border-background" style={{ background: bg }} />
-            ))}
-          </div>
+        {/* Stats bar */}
+        <div className="mt-14 inline-flex items-center gap-8 rounded-2xl border border-border bg-card px-8 py-4 shadow-sm">
+          {[
+            { n: "12k+", label: "Thoughts saved" },
+            { n: "1.2k+", label: "Users" },
+            { n: "48k+", label: "AI transforms" },
+          ].map((s, i) => (
+            <div key={s.label} className={`text-center ${i > 0 ? "border-l border-border pl-8" : ""}`}>
+              <p className="font-display font-bold text-xl" style={{ color: "var(--green)" }}>{s.n}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -234,7 +263,7 @@ function LiveDemo() {
               );
             })}
           </div>
-          <Button onClick={run} disabled={loading} className="rounded-full px-7 h-11">
+          <Button onClick={run} disabled={loading} className="rounded-xl px-7 h-11 font-semibold" style={{ background: "var(--green)", color: "white" }}>
             {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Clarifying…</> : <><Wand2 className="h-4 w-4 mr-2" />Transform</>}
           </Button>
         </div>
@@ -315,19 +344,19 @@ function Pricing() {
       </div>
       <div className="grid md:grid-cols-3 gap-6">
         {plans.map(p => (
-          <div key={p.name} className={`rounded-2xl border p-8 flex flex-col gap-6 ${p.highlight ? "border-foreground bg-foreground text-background" : "border-border/50 bg-card"}`}>
+          <div key={p.name} className={`rounded-2xl border p-8 flex flex-col gap-6 ${p.highlight ? "border-transparent text-white" : "border-border bg-card"}`} style={p.highlight ? { background: "var(--green)" } : {}}>
             <div>
               <p className={`text-xs uppercase tracking-widest mb-1 ${p.highlight ? "text-background/60" : "text-muted-foreground"}`}>{p.name}</p>
               <div className="flex items-end gap-1">
                 <span className="font-display text-4xl">{p.price}</span>
-                <span className={`text-sm mb-1 ${p.highlight ? "text-background/60" : "text-muted-foreground"}`}>/ {p.period}</span>
+                <span className={`text-sm mb-1 ${p.highlight ? "text-white/70" : "text-muted-foreground"}`}>/ {p.period}</span>
               </div>
-              <p className={`text-sm mt-2 ${p.highlight ? "text-background/70" : "text-muted-foreground"}`}>{p.desc}</p>
+              <p className={`text-sm mt-2 ${p.highlight ? "text-white/80" : "text-muted-foreground"}`}>{p.desc}</p>
             </div>
             <ul className="space-y-2.5 flex-1">
               {p.features.map(f => (
                 <li key={f} className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className={`h-4 w-4 shrink-0 ${p.highlight ? "text-background/70" : "text-sage"}`} />
+                  <CheckCircle2 className={`h-4 w-4 shrink-0 ${p.highlight ? "text-white/80" : ""}`} style={p.highlight ? {} : { color: "var(--green)" }} />
                   {f}
                 </li>
               ))}
@@ -441,17 +470,46 @@ function Contact() {
 // ─── CTA ──────────────────────────────────────────────────────────────────
 function CTA() {
   return (
-    <section className="py-24 px-6 border-t border-border/40">
-      <div className="max-w-4xl mx-auto rounded-[2.5rem] bg-foreground text-background p-12 md:p-20 text-center relative overflow-hidden shadow-2xl">
-        <img src="https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=1200"
-          className="absolute inset-0 w-full h-full object-cover opacity-8" alt="" />
+    <section className="py-24 px-6 border-t border-border">
+      <div className="max-w-4xl mx-auto rounded-3xl p-12 md:p-20 text-center relative overflow-hidden"
+        style={{ background: "var(--green)" }}>
+        {/* Dot pattern */}
+        <div className="absolute inset-0 opacity-10 rounded-3xl"
+          style={{
+            backgroundImage: "radial-gradient(circle at 2px 2px, white 1px, transparent 0)",
+            backgroundSize: "28px 28px",
+          }} />
         <div className="relative z-10">
-          <h2 className="font-display text-5xl md:text-7xl mb-6">Ready for clarity?</h2>
-          <p className="text-lg text-background/70 mb-10 max-w-xl mx-auto font-light">
+          <div className="flex justify-center mb-6">
+            <div className="h-16 w-16 rounded-2xl bg-white/20 flex items-center justify-center">
+              <svg width="36" height="36" viewBox="0 0 48 48" fill="none">
+                <ellipse cx="24" cy="28" rx="11" ry="12" fill="white" opacity="0.9"/>
+                <path d="M13 26 C8 22 6 30 11 33 L14 30 Z" fill="white" opacity="0.7"/>
+                <path d="M35 26 C40 22 42 30 37 33 L34 30 Z" fill="white" opacity="0.7"/>
+                <ellipse cx="24" cy="17" rx="10" ry="10" fill="white" opacity="0.9"/>
+                <path d="M16 10 L14 5 L19 9 Z" fill="white"/>
+                <path d="M32 10 L34 5 L29 9 Z" fill="white"/>
+                <circle cx="19.5" cy="17" r="4.5" fill="#052e16"/>
+                <circle cx="28.5" cy="17" r="4.5" fill="#052e16"/>
+                <circle cx="19.5" cy="17" r="3" fill="#4ade80"/>
+                <circle cx="28.5" cy="17" r="3" fill="#4ade80"/>
+                <circle cx="19.5" cy="17" r="1.4" fill="#052e16"/>
+                <circle cx="28.5" cy="17" r="1.4" fill="#052e16"/>
+                <circle cx="20.5" cy="16" r="0.7" fill="white"/>
+                <circle cx="29.5" cy="16" r="0.7" fill="white"/>
+                <path d="M22 20 L24 23 L26 20 Z" fill="#fbbf24"/>
+              </svg>
+            </div>
+          </div>
+          <h2 className="font-display font-extrabold text-4xl md:text-6xl mb-4 text-white">
+            Ready for clarity? 🎉
+          </h2>
+          <p className="text-lg text-white/80 mb-10 max-w-xl mx-auto">
             Join thinkers, creators, and teams who choose intention over noise.
           </p>
           <Link to="/auth/signup">
-            <Button size="lg" variant="secondary" className="rounded-full h-14 px-10 text-base">
+            <Button size="lg" className="rounded-xl h-13 px-10 text-base font-semibold bg-white hover:bg-white/90 shadow-lg"
+              style={{ color: "var(--green)" }}>
               Get started for free <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           </Link>
@@ -493,7 +551,7 @@ function FloatingAI() {
     <>
       {/* Bubble */}
       <button onClick={() => setOpen(o => !o)}
-        className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-foreground text-background shadow-lift flex items-center justify-center hover:scale-105 transition">
+        className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lift flex items-center justify-center hover:scale-105 transition font-medium" style={{ background: "var(--green)", color: "white" }}>
         {open ? <X className="h-5 w-5" /> : <Bot className="h-5 w-5" />}
       </button>
 
@@ -527,7 +585,7 @@ function FloatingAI() {
               placeholder="Ask about Quietly…"
               className="flex-1 rounded-full bg-subtle border border-border/60 px-3 py-1.5 text-xs outline-none focus:border-foreground/40 transition" />
             <button onClick={send} disabled={!input.trim() || loading}
-              className="h-8 w-8 rounded-full bg-foreground text-background flex items-center justify-center disabled:opacity-40 transition">
+              className="h-8 w-8 rounded-full flex items-center justify-center disabled:opacity-40 transition" style={{ background: "var(--green)", color: "white" }}>
               {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
             </button>
           </div>

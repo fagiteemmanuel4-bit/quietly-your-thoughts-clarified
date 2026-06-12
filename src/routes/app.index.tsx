@@ -75,7 +75,7 @@ function Dashboard() {
   const urgentTasks = pendingTasks.filter(t => t.priority === "urgent");
 
   const quickActions = [
-    { to: "/app/workspace", icon: Pencil, label: "Open Workspace", color: "bg-violet-soft text-violet" },
+    { to: "/app/workspace", icon: Pencil, label: "Open Workspace", color: "bg-green-soft text-green-600" },
     { to: "/app/planner", icon: ListChecks, label: "View Tasks", color: "bg-sage-soft text-sage" },
     { to: "/app/calendar", icon: Calendar, label: "Calendar", color: "bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400" },
     { to: "/app/team", icon: MessageSquare, label: "Team Chat", color: "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400" },
@@ -105,7 +105,7 @@ function Dashboard() {
         {/* AI Brief */}
         <div className="rounded-xl border border-border bg-card p-5 fade-up" style={{ animationDelay: "0.1s" }}>
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="h-4 w-4 text-violet" />
+            <Sparkles className="h-4 w-4" style={{ color: "var(--green)" }} />
             <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Daily brief</span>
           </div>
           {briefLoading ? (

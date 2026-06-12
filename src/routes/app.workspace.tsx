@@ -213,8 +213,8 @@ export default function Workspace() {
     <div className="flex flex-col h-[calc(100vh-3.5rem)] md:h-screen bg-background">
       {/* Header */}
       <div className="border-b border-border/60 px-4 md:px-8 py-4 flex items-center gap-3 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="h-8 w-8 rounded-full bg-violet-soft flex items-center justify-center">
-          <Sparkles className="h-4 w-4 text-violet" />
+        <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ background: "var(--green-soft)" }}>
+          <Sparkles className="h-4 w-4" style={{ color: "var(--green)" }} />
         </div>
         <div>
           <h1 className="font-medium text-sm">AI Workspace</h1>
@@ -238,7 +238,7 @@ export default function Workspace() {
           <div key={m.id} className={`flex gap-3 ${m.role === "user" ? "flex-row-reverse" : ""} workspace-msg-in`}>
             {/* Avatar */}
             <div className={`h-8 w-8 rounded-full shrink-0 flex items-center justify-center text-xs font-medium ${
-              m.role === "assistant" ? "bg-violet-soft text-violet" : "bg-foreground text-background"
+              m.role === "assistant" ? "" : "bg-foreground text-background"
             }`}>
               {m.role === "assistant" ? <Bot className="h-4 w-4" /> : <User className="h-4 w-4" />}
             </div>
@@ -343,7 +343,7 @@ export default function Workspace() {
             {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
           </button>
           <Button onClick={() => send()} disabled={!input.trim() || loading}
-            className="h-12 w-12 rounded-full p-0 shrink-0">
+            className="h-12 w-12 rounded-full p-0 shrink-0" style={{ background: "var(--green)", color: "white" }}>
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
         </div>

@@ -49,8 +49,8 @@ function HelpPage() {
     <div className="flex flex-col h-[calc(100vh-3.5rem)] md:h-screen bg-background">
       {/* Header */}
       <div className="border-b border-border/60 px-4 md:px-8 py-4 flex items-center gap-3 bg-background/80 backdrop-blur-sm">
-        <div className="h-8 w-8 rounded-full bg-sage-soft flex items-center justify-center">
-          <HelpCircle className="h-4 w-4 text-sage" />
+        <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ background: "var(--green-soft)" }}>
+          <HelpCircle className="h-4 w-4" style={{ color: "var(--green)" }} />
         </div>
         <div>
           <h1 className="font-medium text-sm">Help Centre</h1>
