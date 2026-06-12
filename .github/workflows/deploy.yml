@@ -25,19 +25,21 @@ jobs:
           bun-version: latest
 
       - name: Install dependencies
-        run: bun install
+        run: bun install --frozen-lockfile
 
-      - name: Build
+      - name: Build (SPA mode for GitHub Pages)
         env:
-          VITE_APP_URL:                    ${{ secrets.VITE_APP_URL }}
-          VITE_FIREBASE_API_KEY:           ${{ secrets.VITE_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN:       ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_PROJECT_ID:        ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_STORAGE_BUCKET:    ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_APP_URL:                      ${{ secrets.VITE_APP_URL }}
+          VITE_FIREBASE_API_KEY:             ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN:         ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID:          ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET:      ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
-          VITE_FIREBASE_APP_ID:            ${{ secrets.VITE_FIREBASE_APP_ID }}
-          OPENROUTER_API_KEY:              ${{ secrets.OPENROUTER_API_KEY }}
-          RESEND_API_KEY:                  ${{ secrets.RESEND_API_KEY }}
+          VITE_FIREBASE_APP_ID:              ${{ secrets.VITE_FIREBASE_APP_ID }}
+          OPENROUTER_API_KEY:                ${{ secrets.OPENROUTER_API_KEY }}
+          RESEND_API_KEY:                    ${{ secrets.RESEND_API_KEY }}
+          # Disable nitro for GitHub Pages (static SPA only)
+          LOVABLE_SANDBOX: ""
         run: bun run build
 
       - name: Upload artifact

@@ -240,16 +240,35 @@ In your Vercel project → **Settings → Environment Variables**, add every key
 
 > **Important:** Set `VITE_APP_URL` to your production URL (e.g. `https://quietly.app`). This is used in all email links and invite tokens — changing it later will not break existing invite links because they use tokens, not hardcoded paths.
 
-### 4. Build settings
+### 4. Build settings (Vercel "Other" preset)
 
 | Setting | Value |
 |---|---|
-| Build command | `bun run build` |
-| Output directory | `.output/public` (TanStack Start + Nitro) |
-| Install command | `bun install` |
-| Node.js version | 20.x |
+| **Framework Preset** | **Other** |
+| **Build command** | `bun run build` |
+| **Output directory** | *(leave blank — Nitro writes to `.vercel/output` automatically)* |
+| **Install command** | `bun install --frozen-lockfile` |
+| **Node.js version** | 20.x |
 
-### 5. Deploy
+> **Why "Other"?** This app uses TanStack Start with Nitro SSR. The Nitro vercel preset writes directly to `.vercel/output/` which Vercel reads automatically — no output directory override needed.
+
+### 5. Environment variables
+
+Go to your Vercel project → **Settings → Environment Variables** and add every key from the `.env` section above. The minimum required for the app to boot:
+
+```
+VITE_APP_URL
+VITE_FIREBASE_API_KEY
+VITE_FIREBASE_AUTH_DOMAIN
+VITE_FIREBASE_PROJECT_ID
+VITE_FIREBASE_STORAGE_BUCKET
+VITE_FIREBASE_MESSAGING_SENDER_ID
+VITE_FIREBASE_APP_ID
+OPENROUTER_API_KEY
+RESEND_API_KEY
+```
+
+### 6. Deploy
 
 Click **Deploy**. Vercel builds and deploys in ~60 seconds.
 
